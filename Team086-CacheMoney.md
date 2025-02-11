@@ -13,7 +13,7 @@
 | Member2     |     Karan Kashyap      |
 | Member2     |  karan10@illinois.edu  |
 | Member3     |      Vraj Patel        |
-| Member3     |         vrajp2         |
+| Member3     |  vrajp2@illinois.edu   |
 
 ## Project Information
 
