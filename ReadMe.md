@@ -1,6 +1,7 @@
 # Team086-CacheMoney
-
 CS411 project repository for Team086-CacheMoney (bchang, sgandhi, karan10, vrajp2).
+<img width="1200" alt="Screenshot 2025-02-16 at 2 53 28 PM" src="https://github.com/user-attachments/assets/b53e782d-4886-4c38-bb76-c997c08876ca" />
+
 
 ## Permission
 You should make sure you allow TAs to access your repository. You can add TA(s) as a collaborator to your repository.
