@@ -1,4 +1,4 @@
-# Trivia Basket
+# Trivia Basket Project Proposal
 <img width="1200" alt="Screenshot 2025-02-16 at 2 53 28 PM" src="https://github.com/user-attachments/assets/5f1d3945-0925-45ef-b247-0976ed638f26" />
 
 ## Designs
