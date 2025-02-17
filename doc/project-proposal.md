@@ -15,7 +15,7 @@ _Trivia Basket_ aims to offer a unique trivia-playing experience by combining mu
 
 On the user side, players will have a username and password they use to sign in to access their account. There are three player pages: the profile, flashcards, and stats. 
 - The player profile will allow players to change their username/password, as well as select their character (fruit) icon and icon background color. 
-- The player flashcard page displays a table of previous trivia questions that players have bookmarked. From the table, players can search through saved questions, or select questions to start a custom practice session to review. 
+- The player flashcard page displays a table of previous trivia questions that players have bookmarked. From the table, players can search through saved questions, or select questions to start a custom practice session to review. Users can also search/filter through the question database to create new flashcards. 
 - The stats page will house all player data visualizations and metrics, such as their best and worst categories, their overall accuracy, number of game wins, total number of questions answered, average time taken to answer questions, and total number of points earned. The main display will be a radar chart that shows player strength across all categories and acts as a “fingerprint” of the player’s trivia style. 
 
 
@@ -84,10 +84,10 @@ If it is still challenging to meet the entity/size requirements for PT2, we will
   - This page will also feature a radar chart with a unique category on each axis and will update the graph based on the time period selected (past 30 days, all time, etc.). Users can access this page by clicking their profile picture on the webpage.
   - All performance statistics will be computed with real-time queries to fetch relevant data to ensure that statistics are always up to date (vs. storing player statistics directly).
 - #### Flashcards/search
-  - A page designated to creating “flashcards” (saved trivia questions) for reviewing and improving at trivia. 
+  - A page designated to creating “flashcards” (saved trivia questions) for reviewing and improving at trivia.
+  - Users can create flashcards on a separate page by searching and filtering through all trivia questions stored in the DB. They can also create flashcards through the "save question" button during games.  
   - A player’s flashcards will be stored as foreign keys referencing question IDs from questions in the trivia database. 
   - Users will be able to **create, delete, or browse** (CRUD) through flashcards using a search bar.
-  - Users will also be able to search and filter through all trivia questions stored in the DB and create flashcards from them. 
   - When searching, they can set filters on their cards, such as by difficulty (based on overall user accuracy) and category.
   - Users can press a “practice” button to review their flashcards, in which they will be presented with questions and then type in their answers.
 - #### Profile Settings
@@ -99,7 +99,6 @@ If it is still challenging to meet the entity/size requirements for PT2, we will
   - Players have the option to save questions as flashcards (which will appear in their account). 
   - In multiplayer mode, there will also be a leaderboard displayed at the end of each question.
   - Throughout the game, user and question data will be **updated** (e.g. lifetime question accuracy, questions saved for each user, etc.). 
-
 
 ## Work Distribution
 _Trivia Basket_ can be divided into four main full-stack issues. 
@@ -131,11 +130,14 @@ _Trivia Basket_ can be divided into four main full-stack issues.
   - Backend Tasks:
     - Create a relation to store flashcards for a user (question ID, user ID foreign keys).
     - Write queries to bookmark questions for a user and insert to flashcards relation.
+    - Write queries to delete flashcards for a user.
+    - Write queries to update flashcard status (e.g. practice priority level)
     - Write queries to search/filter through flashcards (to enable users to browse their flashcards)
+    - Write queries to search/filter through questions (for users to find questions to bookmark)
   - Frontend Tasks:
     - Save question as flashcard interface (in game flow)
-    - Search/filter through flashcards interface
-    - Flashcard table display
+    - Search/filter through flashcards/questions interface
+    - Flashcard table display + UI
     - Select flashcards within table to start a practice session or batch delete
 
 - #### User metrics, stats page, radar chart, games won, best/worst category, overall accuracy.
