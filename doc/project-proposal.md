@@ -89,6 +89,7 @@ If it is still challenging to meet the entity/size requirements for PT2, we will
   - A player’s flashcards will be stored as foreign keys referencing question IDs from questions in the trivia database. 
   - Users will be able to **create, delete, or browse** (CRUD) through flashcards using a search bar.
   - When searching, they can set filters on their cards, such as by difficulty (based on overall user accuracy) and category.
+  - Users can also tag their flashcards with different priority levels and update those priority levels from the table. For example, a user could mark a flashcard as priority 0 if they have memorized it and a higher priority if it is something they are currently learning.
   - Users can press a “practice” button to review their flashcards, in which they will be presented with questions and then type in their answers.
 - #### Profile Settings
   - A page for the user to change their profile fruit icon and icon background color. They can also view and change their username and password on this page. Making changes to a player profile will update the corresponding row in the user database. 
