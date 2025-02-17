@@ -95,7 +95,7 @@ We will have to parse the .txt files to extract the questions, but this should n
 - Throughout the game, user and question data will be updated (e.g. lifetime question accuracy, questions saved for each user, etc.). 
 
 
-### Work Distribution
+## Work Distribution
 _Trivia Basket_ can be divided into four main full-stack issues. 
 - #### Dataset parsing, trivia question/answer/category relations, and trivia game flow
   - Assignee: **Benjamin Chang (bchang)**
