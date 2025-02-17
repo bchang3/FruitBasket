@@ -75,24 +75,24 @@ We will have to parse the .txt files to extract the questions, but this should n
 
 ### Player Profile
 - #### Player Statistics
- - A page that displays the user’s trivia statistics, such as their best and worst categories.
- - This page will also feature a radar chart with a unique category on each axis and will update the graph based on the time period selected (past 30 days, all time, etc.). Users can access this page by clicking their profile picture on the webpage.
- - All performance statistics will be computed with real-time queries to fetch relevant data to ensure that statistics are always up to date (vs. storing player statistics directly).
+  - A page that displays the user’s trivia statistics, such as their best and worst categories.
+  - This page will also feature a radar chart with a unique category on each axis and will update the graph based on the time period selected (past 30 days, all time, etc.). Users can access this page by clicking their profile picture on the webpage.
+  - All performance statistics will be computed with real-time queries to fetch relevant data to ensure that statistics are always up to date (vs. storing player statistics directly).
 - #### Flashcards
- - A page designated to creating “flashcards” (saved trivia questions) for reviewing and improving at trivia. 
- - A player’s flashcards will be stored as foreign keys referencing question IDs from questions in the trivia database. 
- - Users will be able to create, delete, or browse through flashcards using a search bar.
- - When searching, they can set filters on their cards, such as by difficulty (based on overall user accuracy) and category.
- - Users can press a “practice” button to review their flashcards, in which they will be presented with questions and then type in their answers.
+  - A page designated to creating “flashcards” (saved trivia questions) for reviewing and improving at trivia. 
+  - A player’s flashcards will be stored as foreign keys referencing question IDs from questions in the trivia database. 
+  - Users will be able to **create, delete, or browse** through flashcards using a search bar.
+  - When searching, they can set filters on their cards, such as by difficulty (based on overall user accuracy) and category.
+  - Users can press a “practice” button to review their flashcards, in which they will be presented with questions and then type in their answers.
 - #### Profile Settings
- - A page for the user to change their profile fruit icon and icon background color. They can also view and change their username and password on this page. Making changes to a player profile will update the corresponding row in the user database. 
+  - A page for the user to change their profile fruit icon and icon background color. They can also view and change their username and password on this page. Making changes to a player profile will update the corresponding row in the user database. 
 ### Games/Trivia Sessions
-- On the home page, users can select to play either a single-player or multiplayer game. Both game modes will look the same, but single-player mode will skip the lobby creation step. 
-- Questions will be selected by querying the trivia database with the given game settings (categories, difficulty, etc.).
-- The user will be presented with a question page and then provided a list of options to choose as their answers (all as separate buttons). 
-- Players have the option to save questions as flashcards (which will appear in their account). 
-- In multiplayer mode, there will also be a leaderboard displayed at the end of each question.
-- Throughout the game, user and question data will be updated (e.g. lifetime question accuracy, questions saved for each user, etc.). 
+  - On the home page, users can select to play either a single-player or multiplayer game. Both game modes will look the same, but single-player mode will skip the lobby creation step. 
+  - Questions will be selected by **querying the trivia database** with the given game settings (categories, difficulty, etc.).
+  - The user will be presented with a question page and then provided a list of options to choose as their answers (all as separate buttons). 
+  - Players have the option to save questions as flashcards (which will appear in their account). 
+  - In multiplayer mode, there will also be a leaderboard displayed at the end of each question.
+  - Throughout the game, user and question data will be **updated** (e.g. lifetime question accuracy, questions saved for each user, etc.). 
 
 
 ## Work Distribution
