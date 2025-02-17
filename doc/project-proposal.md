@@ -69,6 +69,9 @@ We will have to parse the .txt files to extract the questions, but this should n
 - The questions are contained in JSON files with the attributes QuestionSource, QuestionId, Question, Answer, Aliases.
 - This dataset is designed for natural language processing and doesn’t have features like questions organized by category or alternate answer options. However, it does provide answer aliases (such as Sunset Blvd, Sunset Boulevard, etc.). This dataset is better suited for a free-response-based trivia game where user answers are compared to the correct answers. In addition, we would need to classify questions by category, which would require us to write and train a classification model (which would likely be out of scope for this project). 
 
+### Note on data sources + entities
+Currently, we plan to use only the first **Open Trivia QA** dataset since it is already organized into categories. This dataset would provide multiple entities like questions, question instances (when a user answers a question), and categories/answers. In addition, other entities will be created to store user interaction, such as game history (log of all games played), player rank/tiers, player flashcards (users have sets of flashcards that have foreign key references to questions IDs), etc. If it is still challenging to meet the entity/size requirements for PT2, we will also use the **Trivia QA** dataset and add a free-response practice mode.
+
 ## Functionality 
 
 [Figma Designs/ UI Mockup](https://www.figma.com/design/FKE9jezoe8lrA1GmFWBS1p/Designs?node-id=0-1&p=f)
