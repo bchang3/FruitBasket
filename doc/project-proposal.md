@@ -2,7 +2,7 @@
 <img width="1200" alt="Screenshot 2025-02-16 at 2 53 28 PM" src="https://github.com/user-attachments/assets/5f1d3945-0925-45ef-b247-0976ed638f26" />
 
 ## Designs
-[Basic Wireframes/UI](https://www.figma.com/design/FKE9jezoe8lrA1GmFWBS1p/Designs?node-id=0-1&p=f)
+[Basic Wireframes/UI Mockup](https://www.figma.com/design/FKE9jezoe8lrA1GmFWBS1p/Designs?node-id=0-1&p=f)
 
 ## Project Summary
 _Trivia Basket_ is a fruit-themed trivia platform where players can answer questions, play single or multiplayer trivia, practice for different categories, and track their performance statistics over time. Players can configure their trivia sessions by adjusting the timing for each round, modifying lobby size, and selecting which question categories to include. In between rounds, question statistics (e.g. percentage of people that answered correctly) will be displayed, and players will earn points for answering questions correctly.
@@ -71,7 +71,7 @@ We will have to parse the .txt files to extract the questions, but this should n
 
 ## Functionality 
 
-[Figma Designs](https://www.figma.com/design/FKE9jezoe8lrA1GmFWBS1p/Designs?node-id=0-1&p=f)
+[Figma Designs/ UI Mockup](https://www.figma.com/design/FKE9jezoe8lrA1GmFWBS1p/Designs?node-id=0-1&p=f)
 
 ### Player Profile
 - #### Player Statistics
