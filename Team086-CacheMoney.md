@@ -24,7 +24,9 @@
 | Video Link  |                        |
 
 ## Project Summary
-<img width="1200" alt="Screenshot 2025-02-16 at 2 53 28 PM" src="https://github.com/user-attachments/assets/601f888b-8562-4016-95ea-5a84e751625d" />
+
+<img width="1200" alt="Screenshot 2025-02-16 at 2 53 28 PM" src="https://github.com/user-attachments/assets/f9207005-e325-4daf-a8ef-f475ec17c33b" />
+
 
 _Trivia Basket_ is a fruit-themed trivia platform where players can answer questions, play single or multiplayer trivia, practice for different categories, and track their performance statistics over time. Players can configure their trivia sessions by adjusting the timing for each round, modifying lobby size, and selecting which question categories to include. In between rounds, question statistics (e.g. percentage of people that answered correctly) will be displayed, and players will earn points for answering questions correctly.
 
