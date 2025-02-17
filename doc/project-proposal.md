@@ -31,24 +31,24 @@ In addition, there will be an initial game settings page where the number of rou
 _Trivia Basket_ has two main creative components: multiplayer mode and player performance data visualizations.
 
 
-In the multiplayer mode, players can configure lobby settings like the maximum number of players, time for each round, categories to select questions from, and question difficulty. The creator of the game will be able to invite other players to the game with a randomly generated join code and link. There will also be a custom point system where players who answer first or have answer streaks will earn more points. To implement multiplayer mode, we plan to use WebSockets to support real-time communication between players and the server and simultaneously progress the game state for multiple players (lobbies).  Multiplayer mode will also support session caching to reconnect players to the same game if they get disconnected. 
+In the multiplayer mode, players can configure lobby settings like the maximum number of players, time for each round, categories to select questions from, and question difficulty. The creator of the game will be able to invite other players to the game with a randomly generated join code and link. There will also be a custom point system where players who answer first or have answer streaks will earn more points. To implement multiplayer mode, we plan to use _WebSockets_ to support real-time communication between players and the server and simultaneously progress the game state for multiple players (lobbies).  Multiplayer mode will also support session caching to reconnect players to the same game if they get disconnected. 
 
-For player data visualizations, each player will have a “profile” page where they can see an interactive radar chart of their performance across different categories. For example, a player would be able to see that their accuracy with fine arts and science questions is twice as high as their accuracy with mythology and history. The radar chart will allow players to set a time frame so they can see their performance across different days or months and visualize their progress.  To implement the radar chart, we plan to use Chart.JS paired with database queries to select relevant data. The player profile page will also have other game stats like overall accuracy, total number of questions answered, average time taken to answer questions, and total number of points earned. 
+For player data visualizations, each player will have a “profile” page where they can see an interactive radar chart of their performance across different categories. For example, a player would be able to see that their accuracy with fine arts and science questions is twice as high as their accuracy with mythology and history. The radar chart will allow players to set a time frame so they can see their performance across different days or months and visualize their progress.  To implement the radar chart, we plan to use _Chart.JS_ paired with database queries to select relevant data. The player profile page will also have other game stats like overall accuracy, total number of questions answered, average time taken to answer questions, and total number of points earned. 
 
 ## Usefulness
 _Trivia Basket_ allows users to play trivia with questions from a wide variety of categories without having to search the web for them. With _Trivia Basket_, it only takes a few seconds to start a trivia game. In addition, no other trivia websites offer the player metrics that _Trivia Basket_ displays. By showing players which categories they are strong or weak in, they can improve by practicing and tracking their progress over time. With the practice and flashcard feature, _Trivia Basket_ becomes more than a game, encouraging people to learn and expand their knowledge.
 
 
-Similar applications to _Trivia Basket_ include _Quizlet_, _Kahoot!_, and _Trivia Crack_. _Quizlet_ and _Kahoot_ fall more on the educational side of trivia, designed to primarily be used in the context of courses. On the other hand, _Trivia Crack_ is a trendy game that focuses more on the social and competitive aspects of trivia. _Trivia Basket_ combines these two approaches, offering a fun, social, fruit-themed trivia experience like Trivia Crack, as well as a way for people to learn and improve like Quizlet and Kahoot!. 
+Similar applications to _Trivia Basket_ include _Quizlet_, _Kahoot!_, and _Trivia Crack_. _Quizlet_ and _Kahoot_ fall more on the educational side of trivia, designed to primarily be used in the context of courses. On the other hand, _Trivia Crack_ is a trendy game that focuses more on the social and competitive aspects of trivia. _Trivia Basket_ combines these two approaches, offering a fun, social, fruit-themed trivia experience like _Trivia Crack_, as well as a way for people to learn and improve like _Quizlet_ and _Kahoot!_. 
 
 ## Realness 
 Currently, we have identified two candidate data sources for trivia questions.
 
 
-### Open Trivia QA (Source: GitHub)
+### Open Trivia QA (Source: [GitHub](https://github.com/uberspot/OpenTriviaQA))
 - The Open Trivia QA is a Creative Commons dataset containing trivia questions and answers classified by category.
 - Questions appear in two formats, multiple-choice (A-D) or True-False. The advantage of this dataset is that plausible incorrect answers are provided along with the correct answer, allowing us to use the question directly.
-- The questions are contained in .txt files grouped by category. They follow a standard format of #Q prefixing a new question, ^ prefixing the correct answer, and each answer option appearing on a new line below.
+- The questions are contained in .**txt** files grouped by category. They follow a standard format of **#Q** prefixing a new question, **^** prefixing the correct answer, and each answer option appearing on a new line below.
 
 ```
 #Q Three of these animals hibernate. Which one does not?
@@ -59,12 +59,12 @@ C Frog
 D Snake
 ```
 
-- There are ~45,000 total questions and 22 categories. 
+- There are **~45,000** total questions and **22** categories. 
 We will have to parse the .txt files to extract the questions, but this should not be an issue since the overall data quality is good and follows a standard format. In addition, the questions are already grouped by category and have alternate answer choices. 
 
 
-### Trivia QA (Source: University of Washington)
-- The Trivia QA is a collection of 95K question-answer pairs designed for NLP.
+### Trivia QA (Source: [University of Washington](https://nlp.cs.washington.edu/triviaqa/))
+- The Trivia QA is a collection of **95K** question-answer pairs designed for NLP.
 - Questions have an assigned question ID, question, answer (an array of answers + aliases), and evidence sources (e.g. a link to a Wikipedia article).
 - The questions are contained in JSON files with the attributes QuestionSource, QuestionId, Question, Answer, Aliases.
 - This dataset is designed for natural language processing and doesn’t have features like questions organized by category or alternate answer options. However, it does provide answer aliases (such as Sunset Blvd, Sunset Boulevard, etc.). This dataset is better suited for a free-response-based trivia game where user answers are compared to the correct answers. In addition, we would need to classify questions by category, which would require us to write and train a classification model (which would likely be out of scope for this project). 
