@@ -120,7 +120,7 @@ _Trivia Basket_ can be divided into four main full-stack issues.
     - Player profile page
     - Edit username/password, icon, icon background interface
 
- -  #### Flashcards, “save question” functionality, flashcards table display, flashcard search/filtering
+- #### Flashcards, “save question” functionality, flashcards table display, flashcard search/filtering
   - Assignee: **Vraj Patel (vrajp2)**
   - Backend Tasks:
     - Create a relation to store flashcards for a user (question ID, user ID foreign keys).
