@@ -97,7 +97,7 @@ We will have to parse the .txt files to extract the questions, but this should n
 
 ### Work Distribution
 _Trivia Basket_ can be divided into four main full-stack issues. 
-1. #### Dataset parsing, trivia question/answer/category relations, and trivia game flow
+- #### Dataset parsing, trivia question/answer/category relations, and trivia game flow
   - Assignee: **Benjamin Chang (bchang)**
   - Backend Tasks:
     - Parse trivia questions dataset and create/insert to relevant relations in DB 
@@ -108,7 +108,7 @@ _Trivia Basket_ can be divided into four main full-stack issues.
   - Frontend Tasks:
     - Display game stage cycle (e.g. display current question, answer, leaderboard, etc.)
 
-2. #### User accounts, login page, profile information (username, password, icon, etc.)
+- #### User accounts, login page, profile information (username, password, icon, etc.)
   - Assignee: **Karan Kashyap (karan10)**
   - Backend Tasks:
     - Create a user account relation to store username, password, player fruit icon, player icon background color.
@@ -120,7 +120,7 @@ _Trivia Basket_ can be divided into four main full-stack issues.
     - Player profile page
     - Edit username/password, icon, icon background interface
 
-3. #### Flashcards, “save question” functionality, flashcards table display, flashcard search/filtering
+ -  #### Flashcards, “save question” functionality, flashcards table display, flashcard search/filtering
   - Assignee: **Vraj Patel (vrajp2)**
   - Backend Tasks:
     - Create a relation to store flashcards for a user (question ID, user ID foreign keys).
@@ -132,7 +132,7 @@ _Trivia Basket_ can be divided into four main full-stack issues.
     - Flashcard table display
     - Select flashcards within table to start a practice session or batch delete
 
-4. #### User metrics, stats page, radar chart, games won, best/worst category, overall accuracy.
+- #### User metrics, stats page, radar chart, games won, best/worst category, overall accuracy.
   - Assignee: **Shoorsen Gandhi (sgandhi)**
   - Backend Tasks:
     - Write query to compute overall player question accuracy (from game history, user, question relations)
