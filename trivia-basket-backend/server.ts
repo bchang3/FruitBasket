@@ -13,7 +13,7 @@ const connection = mysql.createConnection({
     database: 'fruit-basket-db'
 });
 
-connection.connect;
+connection.connect((err) => {if (!err) console.log("Connected to database!")});
 
 var app = express();
 
