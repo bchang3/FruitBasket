@@ -30,13 +30,13 @@ export async function middleware(req: NextRequest) {
     if (loggedIn) {
       const url = req.nextUrl.clone();
       url.pathname = "/";
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(url, { headers: response.headers });
     }
   } else {
     if (!loggedIn) {
       const url = req.nextUrl.clone();
       url.pathname = "/login";
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(url, { headers: response.headers });
     }
   }
 
@@ -44,5 +44,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)"],
 };

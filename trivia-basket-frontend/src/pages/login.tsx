@@ -7,6 +7,7 @@ export default function Login() {
   const [error, setError] = useState<string>("");
   const router = useRouter();
   const callLogin = async (inputs: { username: string; password: string }) => {
+    console.log("LOGGING IN");
     const res = await fetch("/api/login", {
       method: "POST",
       headers: {
@@ -58,17 +59,20 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <div className="w-full flex flex-row items-end justify-end cursor-pointer">
-          <svg
-            className="hover:scale-105"
-            xmlns="http://www.w3.org/2000/svg"
-            height="36px"
-            viewBox="0 -960 960 960"
-            width="36px"
-            fill="white"
-          >
-            <path d="m560-240-56-58 142-142H160v-80h486L504-662l56-58 240 240-240 240Z" />
-          </svg>
+        <div className="w-full flex flex-col items-end justify-end cursor-pointer">
+          {error && <div className="text-sm text-white">{error}</div>}
+          <button type="submit" className="cursor-pointer">
+            <svg
+              className="hover:scale-105"
+              xmlns="http://www.w3.org/2000/svg"
+              height="36px"
+              viewBox="0 -960 960 960"
+              width="36px"
+              fill="white"
+            >
+              <path d="m560-240-56-58 142-142H160v-80h486L504-662l56-58 240 240-240 240Z" />
+            </svg>
+          </button>
         </div>
       </form>
     </div>
