@@ -46,6 +46,25 @@ app.post('/api/login', async function(req, res) {
   
 });
 
+app.post('/api/updateProfileImage', async function(req, res) {
+  const profileIcon = req.body.profileIcon;
+  const username = req.body.username;
+  const profileColor = req.body.profileColor;
+  console.log(username, profileColor, profileIcon);
+
+  let sql = 'UPDATE User SET iconBackgroundColor = ?, fruitIcon = ? WHERE username= ?';
+
+  connection.query(sql, [profileColor, profileIcon, username], function(err, results) {
+    if (err) {
+      console.error('Error updating user profile image', err);
+      res.status(500).send({ message: 'Error updating user profile image', error: err });
+      return;
+    }
+    res.send({ message: 'User profile image modified successfully!' });
+  });
+  
+});
+
 app.listen(PORT, function () {
         console.log(`Node app is running on port ${PORT}`);
 });

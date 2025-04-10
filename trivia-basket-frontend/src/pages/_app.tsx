@@ -2,7 +2,6 @@ import { Layout } from "@/lib/components/Layout";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { CookiesProvider } from "react-cookie";
 
 function App({ Component, pageProps }: AppProps) {
   return (
@@ -15,11 +14,9 @@ function App({ Component, pageProps }: AppProps) {
           href="/trivia-basket-icon.png"
         ></link>
       </Head>
-      <CookiesProvider>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
-      </CookiesProvider>
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </>
   );
 }

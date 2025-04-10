@@ -16,8 +16,6 @@ export default async function handler(
   const { username, password } = req.body;
 
   try {
-    console.log("MAKING FETCH");
-    console.log(process.env.SERVER_HOST);
     const backendRes = await fetch(`${process.env.SERVER_HOST}/api/login`, {
       method: "POST",
       headers: {
@@ -48,26 +46,15 @@ export default async function handler(
         .setExpirationTime("1d")
         .sign(SECRET_KEY);
 
-      res.setHeader("Set-Cookie", [
+      res.setHeader(
+        "Set-Cookie",
         serialize("loginToken", token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
           path: "/",
         }),
-        serialize("profile_icon", profile_icon, {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          path: "/",
-        }),
-        serialize("profile_color", profile_color, {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          path: "/",
-        }),
-      ]);
+      );
 
       return res.status(200).json({ message: "Login successful" });
     } else {
