@@ -1,12 +1,14 @@
 import csv from "csv-parser"
 import fs from "fs"
 import mysql from "mysql2/promise"
+import dotenv from "dotenv";
+dotenv.config();
 
 async function connect() {
   const connection = await mysql.createConnection({
-    host: '35.238.64.199',
+    host: process.env.DB_HOST,
     user: 'root',
-    password: '=%f=dpfjZOrd:6L0',
+    password: process.env.DB_PASSWORD,
     database: 'fruit-basket-db'
 });
 
