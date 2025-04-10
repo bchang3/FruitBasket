@@ -60,7 +60,7 @@ export default {
       colors: {
         primary: {
           beige: "#FFF9EF",
-          green: "#3eb773",
+          green: "#01a949",
           chestnut: "#DC9666",
         },
       },
