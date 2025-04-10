@@ -4,6 +4,8 @@ import mysql from "mysql2/promise"
 import dotenv from "dotenv";
 dotenv.config();
 
+const PORT = process.env.PORT || 8080;
+
 async function connect() {
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -24,6 +26,6 @@ app.get('/', function(req, res) {
         res.send({'message': 'Hello'});
 });
 
-app.listen(80, function () {
+app.listen(PORT, function () {
         console.log('Node app is running on port 80');
 });

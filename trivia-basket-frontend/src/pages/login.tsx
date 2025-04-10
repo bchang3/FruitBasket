@@ -1,24 +1,24 @@
 export default function Login() {
   return (
-    <div className="flex flex-col justify-center text-center items-center gap-24 w-full h-full bg-primary-green">
+    <div className="flex flex-col justify-center text-center items-center gap-16 w-full h-full bg-primary-green">
       <div className="flex flex-col gap-4 items-center justify-center -mt-24">
         <img src="/trivia-basket-icon.png" className="w-48 h-auto" />
         <h1 className="text-white text-6xl font-semibold">
           Welcome to Trivia Basket!
         </h1>
       </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
           <p className="text-white text-left font-semibold text-lg">
             Username:
           </p>
-          <input className="bg-primary-beige p-2 focus:border-primary-chestnut border-gray-600 focus:outline-none focus:ring-0 border-2 rounded-md h-12 text-lg w-[600px]"></input>
+          <input className="bg-primary-beige p-2 focus:border-primary-chestnut border-gray-700 focus:outline-none focus:ring-0 border-2 rounded-md h-12 text-md w-[600px]" />
         </div>
         <div className="flex flex-col gap-2">
           <p className="text-white text-left font-semibold text-lg">
             Password:
           </p>
-          <input className="bg-primary-beige p-2 focus:border-primary-chestnut border-gray-600 focus:outline-none focus:ring-0 border-2 rounded-md h-12 text-lg w-[600px]"></input>
+          <input className="bg-primary-beige p-2 focus:border-primary-chestnut border-gray-700 focus:outline-none focus:ring-0 border-2 rounded-md h-12 text-md w-[600px]" />
         </div>
         <div className="w-full flex flex-row items-end justify-end cursor-pointer">
           <svg

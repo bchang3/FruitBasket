@@ -11,6 +11,8 @@
     "format:check": "prettier --check src"
   },
   "dependencies": {
+    "dotenv": "^16.4.7",
+    "jose": "^6.0.10",
     "next": "15.2.5",
     "prettier": "^3.5.3",
     "react": "^19.0.0",
