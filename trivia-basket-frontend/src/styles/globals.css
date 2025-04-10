@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 249, 239;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background-color: rgb(var(--background-rgb));
+  font-family: Poppins, sans-serif;
+}

@@ -1,2 +1,2 @@
 .DS_Store
-database_seeding/node_modules
+*.env
