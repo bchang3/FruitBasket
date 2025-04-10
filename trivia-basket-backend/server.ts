@@ -1,25 +1,20 @@
 import express from "express"
-import mysql from "mysql2/promise"
+import mysql from "mysql2"
 
 import dotenv from "dotenv";
 dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 
-async function connect() {
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST,
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,
     user: 'root',
     password: process.env.DB_PASSWORD,
     database: 'fruit-basket-db'
 });
 
-  console.log('Connected to MySQL!');
+connection.connect;
 
-  return connection;
-}
-
-const connection = await connect();
 var app = express();
 
 app.get('/', function(req, res) {
@@ -31,10 +26,14 @@ app.post('/api/login', async function(req, res) {
 
   let sql = 'SELECT password FROM User WHERE username=?';
 
-  // const  = await connection.query(sql, [username]);
-  // if (rows.length == 0) {
-
-  // }
+  connection.query(sql, [username], function(err, results) {
+    if (err) {
+      console.error('Error fetching user login credentials', err);
+      res.status(500).send({ message: 'Error fetching user login credentials', error: err });
+      return;
+    }
+    res.json(results);
+  });
   
 });
 
