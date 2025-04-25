@@ -19,8 +19,6 @@ connection.connect((err) => {
   } else {
     console.log(err);
     console.log("Error connecting to database!");
-    console.log(process.env.DB_HOST);
-    console.log(process.env.DB_PASSWORD);
   }
   });
 
