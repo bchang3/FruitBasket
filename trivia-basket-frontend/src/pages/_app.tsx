@@ -2,6 +2,8 @@ import { Layout } from "@/lib/components/Layout";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { CookiesProvider } from "react-cookie";
+import { ToastContainer } from "react-toastify";
 
 function App({ Component, pageProps }: AppProps) {
   return (
@@ -15,7 +17,10 @@ function App({ Component, pageProps }: AppProps) {
         ></link>
       </Head>
       <Layout>
-        <Component {...pageProps} />
+        <CookiesProvider>
+          <Component {...pageProps} />
+          <ToastContainer theme="light" />
+        </CookiesProvider>
       </Layout>
     </>
   );

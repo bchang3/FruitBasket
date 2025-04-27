@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import NavBar from "./NavBar";
 
