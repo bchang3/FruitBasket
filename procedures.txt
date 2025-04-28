@@ -1,6 +1,4 @@
--- DROP PROCEDURE createQuestionInstance;
 DELIMITER //
-
 CREATE PROCEDURE createQuestionInstance(
 	IN in_questionInstanceID INT,
 	IN in_createdAt DATETIME,
@@ -18,10 +16,9 @@ END
 //
 DELIMITER ;
 
-call createQuestionInstance(121616, '2025-04-27 14:05:00', '2025-04-27 14:05:01', 10, 999, 7, 'user-0', 128);
+
 
 DELIMITER //
-
 CREATE PROCEDURE createFlashcard(
 	IN in_flashcardID INT,
     IN in_priority INT,
@@ -35,7 +32,7 @@ END
 //
 DELIMITER ;
 
--- DROP PROCEDURE getUserFlashcards;
+
 
 DELIMITER //
 CREATE PROCEDURE getUserFlashcards(
@@ -58,6 +55,8 @@ END
 //
 DELIMITER ;
 
+
+
 DELIMITER //
 	CREATE PROCEDURE SearchFlashcards(
 	  IN in_username VARCHAR(255),
@@ -72,9 +71,10 @@ BEGIN
   FROM Flashcard f
   JOIN Question q ON q.questionID = f.questionID
   WHERE f.username = p_username
-    AND q.questionText LIKE '%@in_keyword%'
+    AND LOWER(q.questionText) LIKE LOWER('%@in_keyword%')
   ORDER BY q.questionText;
 END;
+
 
 
 DELIMITER //
@@ -85,11 +85,10 @@ BEGIN
     SELECT
         q.questionID,
         q.questionText,
-        q.questionType,
-        q.categoryID,
-        SUM(qi.userAnswer = q.answerOptionID) / COUNT(qi.questionInstanceID) as user_accuracy
+        q.answerOptionID,
+        c.categoryName
 	FROM GameQuestions gq 
-    JOIN Question q on gq.questionID = q.questionID
+    JOIN Question q on gq.questionID = q.questionID NATURAL JOIN Category c
 -- if we have created that qi stuff, use it, otehrwise, let it be null
     LEFT JOIN QuestionInstance qi ON q.questionID = qi.questionID AND qi.gameID = in_gameID
     WHERE gq.gameID = in_gameID
@@ -98,12 +97,23 @@ BEGIN
     END
     //
     DELIMITER ;
-    
-ALTER TABLE Game
-ADD COLUMN isFinished BIT NOT NULL DEFAULT 0;
-ALTER TABLE User ADD COLUMN elo INT NOT NULL DEFAULT 400;
 
 
+
+DELIMITER //
+CREATE PROCEDURE getQuestionOptions(
+	IN in_questionID INT
+)
+BEGIN
+	SELECT
+		questionOptionID,
+        optionLabel,
+        optionValue
+	FROM QuestionOption
+    WHERE in_questionID = questionID;
+END
+//
+DELIMITER ;
 
 
 
@@ -136,26 +146,28 @@ END;
 //
 DELIMITER ;
 
--- DROP PROCEDURE initializeGame;
+
+
 DELIMITER //
 CREATE PROCEDURE initializeGame(
-	IN in_categories VARCHAR(500),
+	IN in_categoriesCSV VARCHAR(500),
     IN in_usernamesCSV VARCHAR(1000),
-    IN in_numQuestions INT
+    IN in_numQuestions INT,
+    IN gameIDTime INT
 )
 BEGIN
 	DECLARE n_gameID INT;
 	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 	START TRANSACTION;
-    INSERT INTO Game (gameDate, numQuestions)
-    VALUES (NOW(), in_numQuestions);
-    SET n_gameID = LAST_INSERT_ID();
+    INSERT INTO Game (gameDate, numQuestions, gameID)
+    VALUES (NOW(), in_numQuestions, gameIDTime);
+    SET n_gameID = gameIDTime;
     
 	INSERT INTO GameSettings (categoryID, gameID)
     SELECT c.categoryID, n_gameID
     FROM Category c
-    WHERE FIND_IN_SET(c.categoryID, in_categoriesCSV);
+    WHERE FIND_IN_SET(LOWER(c.categoryName), LOWER(in_categoriesCSV));
     
 	INSERT INTO GamePlayers (username, gameID)
     SELECT u.username, n_gameID
@@ -164,8 +176,8 @@ BEGIN
     
 	INSERT INTO GameQuestions (gameID, questionID)
     SELECT n_gameID, q.questionID
-    FROM Question q
-    WHERE FIND_IN_SET(q.categoryID, in_categoriesCSV)
+    FROM Question q NATURAL JOIN Category c
+    WHERE FIND_IN_SET(LOWER(c.categoryName), LOWER(in_categoriesCSV))
     ORDER BY RAND()
     LIMIT in_numQuestions;
 
