@@ -17,14 +17,14 @@ interface RevealProps {
   player: Player;
 }
 
-export default function RevealScreen({
+export default function LeaderboardScreen({
   socket,
   player,
   lobbyID,
   gameState,
 }: RevealProps) {
   return (
-    <div className="min-h-full h-fit font-poppins">
+    <div className="flex flex-row justify-center w-full min-h-full h-fit font-poppins">
       <PlayerBar
         player={player}
         place={getPlayerPlace(gameState, player)}
@@ -32,17 +32,8 @@ export default function RevealScreen({
         duration={gameState.displayTime}
         startDate={gameState.roundStartTime}
       />
-      <div className="flex flex-col items-center w-full font-poppins gap-4 mt-16 md:mt-24 min-h-full h-fit align-top justify-center pb-24 md:pb-48">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4 text-primary-green">
-          Answer:
-        </h1>
-        <div className="text-2xl md:text-4xl font-semibold mb-4 text-primary-green">
-          {getCorrectAnswerOption(gameState.currentQuestion).questionOptionText}
-        </div>
-        <Button
-          content="Save Question as Flashcard"
-          className="rounded-full px-4 text-xl"
-        />
+      <div className="flex flex-col items-center w-full md:w-2/3 font-poppins gap-4 mt-16 md:mt-24 min-h-full h-fit align-top justify-center pb-24 md:pb-48">
+        <Leaderboard gameState={gameState} />
       </div>
     </div>
   );

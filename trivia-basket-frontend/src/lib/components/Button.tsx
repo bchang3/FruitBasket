@@ -29,7 +29,7 @@ export default function Button({
   return (
     <button
       className={cn(
-        `${styling} w-32 h-14 rounded-xl text-base font-semibold p-2 text-center`,
+        `${styling} w-32 min-w-fit h-14 rounded-xl text-base font-semibold p-2 text-center`,
         className,
       )}
       {...props}

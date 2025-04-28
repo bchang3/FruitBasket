@@ -1,8 +1,6 @@
-
-import express from "express"
-import { Server } from "socket.io"
-import http from "http"
-
+import express from "express";
+import { Server } from "socket.io";
+import http from "http";
 
 export interface Player {
   id: string;
@@ -20,16 +18,31 @@ export interface GameState {
   disconnectedPlayers: Player[];
   numRounds: number;
   currentRound: number;
-  currentQuestion: string;
+  currentQuestion?: Question;
   roundStartTime: number;
+  displayTime: number;
   guessTime: number;
 }
 
+export interface Question {
+  questionID: string;
+  questionText: string;
+  questionOptions: QuestionOption[];
+  questionCategory: string;
+  questionAnswer: string;
+  firstAnswerTime?: number;
+}
+
+export interface QuestionOption {
+  questionOptionID: string;
+  questionOptionLabel: string;
+  questionOptionText: string;
+}
 // Initialize Express and HTTP Server
 const app = express();
 const server = http.createServer(app);
 let lobbies = {};
-let lobbyStates: {[key: string]: Game} = {};
+let lobbyStates: { [key: string]: Game } = {};
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
@@ -40,31 +53,31 @@ const io = new Server(server, {
 
 const displayTime = 10;
 class Game {
-  lobbyID: string
-  gameState: GameState
-  responseIDs: string[]
-  guessIDs: string[]
-  awaitQuestionsTimeout: ReturnType<typeof setTimeout>
-  awaitGuessesTimeout: ReturnType<typeof setTimeout>
+  lobbyID: string;
+  gameState: GameState;
+  responseIDs: string[];
+  guessIDs: string[];
+  awaitDisplayTimeout: ReturnType<typeof setTimeout>;
+  awaitGuessesTimeout: ReturnType<typeof setTimeout>;
 
   constructor(lobbyID) {
     this.lobbyID = lobbyID;
     // Game State
     this.gameState = {
-      stage: 'Lobby',
+      stage: "Lobby",
       players: [],
       disconnectedPlayers: [],
       numRounds: 10,
-      categories:[],
-      guessTime: 30,
+      categories: [],
+      guessTime: 15,
       currentRound: 0,
-      currentQuestion: "",
-      roundStartTime: Date.now()
+      displayTime: displayTime,
+      roundStartTime: Date.now(),
     };
 
     this.responseIDs = [];
     this.guessIDs = [];
-    this.awaitQuestionsTimeout;
+    this.awaitDisplayTimeout;
     this.awaitGuessesTimeout;
   }
   /**
@@ -73,8 +86,8 @@ class Game {
   clearResponses() {
     this.responseIDs = []; //reset received response ID array
     this.gameState.players = this.gameState.players.map((player) => {
-      return {...player, currentResponse: ""}
-    })
+      return { ...player, currentResponse: "" };
+    });
   }
 
   /**
@@ -82,47 +95,115 @@ class Game {
    * @returns question string
    */
   getQuestion() {
-    return "";
+    const questionOptions: QuestionOption[] = [
+      {
+        questionOptionID: "a",
+        questionOptionLabel: "A",
+        questionOptionText: "The inability to express emotions",
+      },
+      {
+        questionOptionID: "b",
+        questionOptionLabel: "B",
+        questionOptionText: "Misinterpretation of basic human expressions",
+      },
+      {
+        questionOptionID: "c",
+        questionOptionLabel: "C",
+        questionOptionText: "Total indifference to others expressions",
+      },
+      {
+        questionOptionID: "d",
+        questionOptionLabel: "D",
+        questionOptionText: "The inability to recognize faces",
+      },
+    ];
+    return {
+      questionID: "id",
+      questionText:
+        "In medicine, which of these brain disorders does the term prosopagnosia refer to?",
+      questionOptions: questionOptions,
+      questionCategory: "Science-Technology",
+      questionAnswer: "d",
+    };
   }
   /**
    * Transitions game state to "Prompt" stage
    */
   startPromptStage() {
-    console.log("Beginning **prompt** stage")
+    console.log("Beginning **prompt** stage");
     this.gameState.stage = "Prompt";
     this.gameState.currentRound += 1;
     this.clearResponses();
     this.gameState.currentQuestion = this.getQuestion();
     this.gameState.roundStartTime = Date.now();
-    this.awaitQuestionsTimeout = setTimeout(() => {
+    this.awaitDisplayTimeout = setTimeout(() => {
       this.startGuessStage();
-    }, 1000 * (displayTime));
+    }, 1000 * displayTime);
     io.to(this.lobbyID).emit("gameStateUpdate", this.gameState);
   }
   /**
    * Transition game state to "Guess" stage
    */
   startGuessStage() {
-    console.log("Beginning **guess** stage")
-    this.guessIDs = []
+    console.log("Beginning **guess** stage");
+    this.guessIDs = [];
     this.gameState.roundStartTime = Date.now();
     this.gameState.stage = "Guess";
-    this.awaitGuessesTimeout = setTimeout(() => {
-      console.log("Awaiting guesses timed out!")
-      this.startRevealStage();
-    }, 1000 * (this.gameState.guessTime + 5))
+    this.awaitGuessesTimeout = setTimeout(
+      () => {
+        console.log("Awaiting guesses timed out!");
+        this.startRevealStage();
+      },
+      1000 * (this.gameState.guessTime + 0.3),
+    );
     io.to(this.lobbyID).emit("gameStateUpdate", this.gameState);
   }
   /**
    * Transition game state to "Reveal" stage
    */
   startRevealStage() {
-    console.log("Beginning **reveal** stage")
+    console.log("Beginning **reveal** stage");
     this.gameState.stage = "Reveal";
+    this.gameState.roundStartTime = Date.now();
+    this.awaitDisplayTimeout = setTimeout(() => {
+      if (this.gameState.numRounds === this.gameState.currentRound) {
+        this.endGame();
+      } else {
+        this.startLeaderboardStage();
+      }
+    }, 1000 * displayTime);
     io.to(this.lobbyID).emit("gameStateUpdate", this.gameState);
   }
   /**
-   * 
+   * Transition game state to "Leaderboard" stage
+   */
+  startLeaderboardStage() {
+    console.log("Beginning **leaderboard** stage");
+    this.gameState.stage = "Leaderboard";
+    this.gameState.roundStartTime = Date.now();
+    this.awaitDisplayTimeout = setTimeout(() => {
+      this.startPromptStage();
+    }, 1000 * displayTime);
+    io.to(this.lobbyID).emit("gameStateUpdate", this.gameState);
+  }
+  /**
+   * End game
+   */
+  endGame() {
+    console.log(`GAME ENDED in lobby ${this.lobbyID}`);
+    this.gameState.stage = "End";
+    setTimeout(
+      () => {
+        console.log(`Deleting game ${this.lobbyID}!`);
+        delete lobbyStates[this.lobbyID];
+        delete lobbies[this.lobbyID];
+      },
+      1000 * 60 * 5,
+    ); //clear stored data after 5 minutes
+    io.emit("gameStateUpdate", this.gameState);
+  }
+  /**
+   *
    * @param {*} id player socket ID
    * @returns player object (reference)
    */
@@ -131,10 +212,10 @@ class Game {
   }
 }
 
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
 
-  socket.on('createLobby', (lobbyID) => {
+  socket.on("createLobby", (lobbyID) => {
     socket.join(lobbyID);
     if (!lobbies[lobbyID]) {
       lobbies[lobbyID] = [];
@@ -142,107 +223,127 @@ io.on('connection', (socket) => {
     }
     lobbies[lobbyID].push(socket.id);
     console.log(`Lobby ${lobbyID} created/updated: `, lobbies[lobbyID]);
-    io.to(lobbyID).emit('gameStateUpdate',  lobbyStates[lobbyID].gameState)
+    io.to(lobbyID).emit("gameStateUpdate", lobbyStates[lobbyID].gameState);
   });
   socket.on("joinLobby", (lobbyID) => {
     if (lobbies[lobbyID]) {
       socket.join(lobbyID);
-      io.to(lobbyID).emit('gameStateUpdate',  lobbyStates[lobbyID].gameState)
+      io.to(lobbyID).emit("gameStateUpdate", lobbyStates[lobbyID].gameState);
     }
-  })
-  socket.on('joinGame', (lobbyID, playerData) => {
+  });
+  socket.on("joinGame", (lobbyID, playerData) => {
     if (lobbies[lobbyID]) {
       lobbies[lobbyID].push(socket.id);
       const game = lobbyStates[lobbyID];
       const playerName = playerData.name;
-      if (playerName) {  console.log(`${playerName} joined lobby ${lobbyID}`); };
+      if (playerName) {
+        console.log(`${playerName} joined lobby ${lobbyID}`);
+      }
       const prevSocketID = playerData.prev_id;
       console.log(prevSocketID);
-      if (prevSocketID && game.gameState.disconnectedPlayers.some((player) => player.id === prevSocketID)) {
+      if (
+        prevSocketID &&
+        game.gameState.disconnectedPlayers.some(
+          (player) => player.id === prevSocketID,
+        )
+      ) {
         //player previously disconnected, copy over old data
-        const oldPlayerData = {...game.gameState.disconnectedPlayers.find((player) => player.id === prevSocketID)} as Player;
+        const oldPlayerData = {
+          ...game.gameState.disconnectedPlayers.find(
+            (player) => player.id === prevSocketID,
+          ),
+        } as Player;
         oldPlayerData.id = socket.id;
         game.gameState.players.push(oldPlayerData);
-        game.gameState.disconnectedPlayers = game.gameState.disconnectedPlayers.filter((player) => player.id !== prevSocketID);
-        io.emit('gameStateUpdate', game.gameState); 
+        game.gameState.disconnectedPlayers =
+          game.gameState.disconnectedPlayers.filter(
+            (player) => player.id !== prevSocketID,
+          );
+        io.emit("gameStateUpdate", game.gameState);
         return;
-      } else if (prevSocketID && game.gameState.players.some((player) => player.id === prevSocketID)) {
+      } else if (
+        prevSocketID &&
+        game.gameState.players.some((player) => player.id === prevSocketID)
+      ) {
         //player is already connected but is connecting again (i.e., from a second tab)
-        game.gameState.players = game.gameState.players.map((player) => player.id === prevSocketID ? {...player, id: socket.id, name: playerName ? playerName : player.name}: player);
-        io.emit('gameStateUpdate', game.gameState); 
+        game.gameState.players = game.gameState.players.map((player) =>
+          player.id === prevSocketID
+            ? {
+                ...player,
+                id: socket.id,
+                name: playerName ? playerName : player.name,
+              }
+            : player,
+        );
+        io.emit("gameStateUpdate", game.gameState);
         return;
       } else {
         //first time join, no relevant previous session exists
         if (playerName && game.gameState.stage === "Lobby") {
           //only allow joins in lobby stage of game
-          game.gameState.players.push({ id: socket.id, name: playerName, profileColor: playerData.profileColor, profileIcon: playerData.profileIcon, points: 0, currentResponse: "" });
-          io.emit('gameStateUpdate', game.gameState); 
+          game.gameState.players.push({
+            id: socket.id,
+            name: playerName,
+            profileColor: playerData.profileColor,
+            profileIcon: playerData.profileIcon,
+            points: 0,
+            currentResponse: "",
+          });
+          io.emit("gameStateUpdate", game.gameState);
         }
       }
     } else {
-        socket.emit('error', 'Lobby does not exist');
-    }
-});
-
-  socket.on('gameEnd', (lobbyID) => {
-    if (lobbies[lobbyID]) {
-      const game = lobbyStates[lobbyID];
-      console.log(`GAME ENDED in lobby ${lobbyID} by ${game?.getPlayerByID(socket.id)?.name}`);
-      game.gameState.stage = "End";
-      setTimeout(() => {
-        console.log(`Deleting game ${lobbyID}!`)
-        delete lobbyStates[lobbyID];
-        delete lobbies[lobbyID];
-      }, 1000 * 60 * 5); //clear stored data after 5 minutes
-      io.emit('gameStateUpdate', game.gameState);
+      socket.emit("error", "Lobby does not exist");
     }
   });
-  socket.on('gameStart', (lobbyID) => {
+
+  socket.on("gameStart", (lobbyID) => {
     if (lobbies[lobbyID]) {
       const game = lobbyStates[lobbyID];
       console.log(`GAME STARTED by ${game?.getPlayerByID(socket.id)?.name}`);
       game.startPromptStage();
-      io.emit('gameStateUpdate', game.gameState);
+      io.emit("gameStateUpdate", game.gameState);
     }
   });
 
-  socket.on('setNumRounds', (lobbyID, numRounds) => {
+  socket.on("setNumRounds", (lobbyID, numRounds) => {
     if (lobbies[lobbyID]) {
-      console.log('Setting number of rounds to: ', numRounds);
+      console.log("Setting number of rounds to: ", numRounds);
       const game = lobbyStates[lobbyID];
-      game.gameState.numRounds = numRounds; 
-      io.to(lobbyID).emit('gameStateUpdate', game.gameState)
+      game.gameState.numRounds = numRounds;
+      io.to(lobbyID).emit("gameStateUpdate", game.gameState);
     }
   });
 
-  socket.on('setGuessTime', (lobbyID, guessTime) => {
+  socket.on("setGuessTime", (lobbyID, guessTime) => {
     if (lobbies[lobbyID]) {
-      console.log('Setting guess time to: ', guessTime);
+      console.log("Setting guess time to: ", guessTime);
       const game = lobbyStates[lobbyID];
-      game.gameState.guessTime = guessTime; 
-      io.to(lobbyID).emit('gameStateUpdate', game.gameState)
+      game.gameState.guessTime = guessTime;
+      io.to(lobbyID).emit("gameStateUpdate", game.gameState);
     }
   });
 
-  socket.on('setCategories', (lobbyID, categories) => {
+  socket.on("setCategories", (lobbyID, categories) => {
     if (lobbies[lobbyID]) {
-      console.log('Setting categories to:', categories);
+      console.log("Setting categories to:", categories);
       const game = lobbyStates[lobbyID];
-      game.gameState.categories = categories; 
-      io.to(lobbyID).emit('gameStateUpdate', game.gameState)
+      game.gameState.categories = categories;
+      io.to(lobbyID).emit("gameStateUpdate", game.gameState);
     }
   });
 
-
-  socket.on('removePlayer', (lobbyID, id) => {
+  socket.on("removePlayer", (lobbyID, id) => {
     if (lobbies[lobbyID]) {
       const game = lobbyStates[lobbyID];
-      console.log('Removing player', game.getPlayerByID(id)?.name, id);
-      game.gameState.players = game.gameState.players.filter((player) => player.id !== id)
-      game.gameState.disconnectedPlayers = game.gameState.disconnectedPlayers.filter((player) => player.id !== id);
-      io.emit('gameStateUpdate', game.gameState);
+      console.log("Removing player", game.getPlayerByID(id)?.name, id);
+      game.gameState.players = game.gameState.players.filter(
+        (player) => player.id !== id,
+      );
+      game.gameState.disconnectedPlayers =
+        game.gameState.disconnectedPlayers.filter((player) => player.id !== id);
+      io.emit("gameStateUpdate", game.gameState);
     }
-    
   });
 
   socket.on("savePlayerResponse", (lobbyID, response) => {
@@ -250,35 +351,49 @@ io.on('connection', (socket) => {
       const game = lobbyStates[lobbyID];
       const player = game.getPlayerByID(socket.id);
       if (player) {
-        console.log('Setting response:', player.name);
+        console.log("Setting response:", player.name);
         player.currentResponse = response.toLowerCase();
-        if (!game.responseIDs.includes(socket.id)) { game.responseIDs.push(socket.id) };
+        if (!game.responseIDs.includes(socket.id)) {
+          game.responseIDs.push(socket.id);
+        }
         if (game.responseIDs.length === game.gameState.players.length) {
           console.log(`All ${game.responseIDs.length} responses received!`);
           game.startGuessStage();
-          clearTimeout(game.awaitQuestionsTimeout);
+          clearTimeout(game.awaitDisplayTimeout);
         }
       }
     }
-  })
+  });
 
   socket.on("savePlayerGuess", (lobbyID, guess) => {
-    if (lobbies[lobbyID]) {
-      const game = lobbyStates[lobbyID];
+    const game = lobbyStates[lobbyID];
+    if (lobbies[lobbyID] && game.gameState.currentQuestion) {
       const player = game.getPlayerByID(socket.id);
       if (player) {
-        console.log('Grading guess:', player.name);
-        if (!game.guessIDs.includes(socket.id)) { game.guessIDs.push(socket.id) };
-        let numCorrect = 0;
-        let points = 0;
-        for (const [correctID, guessID] of Object.entries(guess)) {
-          if (correctID === guessID) {
-            numCorrect += 1;
-            points += 100;
-          }
+        console.log("Grading guess:", player.name);
+        if (!game.guessIDs.includes(socket.id)) {
+          game.guessIDs.push(socket.id);
         }
-        if (numCorrect === game.gameState.players.length) {
-          points *= 1.5;
+        if (game.guessIDs.length === 1 && game.gameState.currentQuestion) {
+          game.gameState.currentQuestion.firstAnswerTime = Date.now();
+        }
+        const correct = guess === game.gameState.currentQuestion.questionAnswer;
+        let points = 0;
+        if (correct && game.gameState.currentQuestion.firstAnswerTime) {
+          points = 1000;
+          if (game.guessIDs.length > 1) {
+            const firstAnswerTime =
+              game.gameState.currentQuestion.firstAnswerTime;
+            const roundDuration = game.gameState.guessTime;
+            const timeRemaining =
+              roundDuration * 1000 -
+              (firstAnswerTime - game.gameState.roundStartTime);
+            const coeff = Math.log(1000 / 500) / timeRemaining;
+            console.log("timeRemaining: ", timeRemaining);
+            console.log("time elapsed: ", Date.now() - firstAnswerTime);
+            points *= Math.exp(-coeff * (Date.now() - firstAnswerTime));
+            points = Math.floor(points);
+          }
         }
         player.points += points;
         console.log(player.points);
@@ -289,31 +404,34 @@ io.on('connection', (socket) => {
         }
       }
     }
-  })
+  });
 
-  socket.on("nextRound", (lobbyID, response) => {
-    if (lobbies[lobbyID]) {
-      const game = lobbyStates[lobbyID];
-      console.log(`Moving to next round! - ${game?.getPlayerByID(socket.id)?.name}`);
-      game.startPromptStage();
-    }
-  })
   // Handle disconnects
-  socket.on('disconnect', () => {
-    console.log('A user disconnected', socket.id);
+  socket.on("disconnect", () => {
+    console.log("A user disconnected", socket.id);
     for (const lobbyID in lobbies) {
       const game = lobbyStates[lobbyID];
       if (game.gameState.players.some((player) => player.id === socket.id)) {
-        console.log('Player disconnected:', game.getPlayerByID(socket.id)?.name, socket.id);
+        console.log(
+          "Player disconnected:",
+          game.getPlayerByID(socket.id)?.name,
+          socket.id,
+        );
         if (game.gameState.stage !== "End") {
-          game.gameState.disconnectedPlayers.push(game.gameState.players.find((player) => player.id === socket.id) as Player);
-          game.gameState.players = game.gameState.players.filter((player) => player.id !== socket.id);
+          game.gameState.disconnectedPlayers.push(
+            game.gameState.players.find(
+              (player) => player.id === socket.id,
+            ) as Player,
+          );
+          game.gameState.players = game.gameState.players.filter(
+            (player) => player.id !== socket.id,
+          );
           if (game.gameState.players.length === 0) {
-            console.log(`Deleting game ${lobbyID}!`)
+            console.log(`Deleting game ${lobbyID}!`);
             delete lobbyStates[lobbyID];
             delete lobbies[lobbyID];
           }
-          io.to(lobbyID).emit('gameStateUpdate', game.gameState);
+          io.to(lobbyID).emit("gameStateUpdate", game.gameState);
         }
       }
     }
@@ -322,6 +440,6 @@ io.on('connection', (socket) => {
 
 // Start the server
 const PORT = 8001;
-server.listen(8001, '0.0.0.0', () => {
+server.listen(8001, "0.0.0.0", () => {
   console.log(`WebSocket server running on port ${PORT}`);
 });

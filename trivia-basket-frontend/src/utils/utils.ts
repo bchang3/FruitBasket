@@ -13,15 +13,29 @@ export interface Player {
 }
 
 export interface GameState {
-  stage: "Lobby" | "Prompt" | "Guess" | "Reveal" | "End";
+  stage: "Lobby" | "Prompt" | "Guess" | "Reveal" | "Leaderboard" | "End";
   players: Player[];
   numRounds: number;
   categories: string[];
   currentRound: number;
-  currentQuestion: string;
+  currentQuestion: Question;
   roundStartTime: number;
+  displayTime: number;
   promptTime: number;
   guessTime: number;
+}
+export interface Question {
+  questionID: string;
+  questionText: string;
+  questionOptions: QuestionOption[];
+  questionCategory: string;
+  questionAnswer: string;
+}
+
+export interface QuestionOption {
+  questionOptionID: string;
+  questionOptionLabel: string;
+  questionOptionText: string;
 }
 
 export function getPlayerByID(gameState: GameState, id: string) {
@@ -35,6 +49,17 @@ export function getPlayerByID(gameState: GameState, id: string) {
 export function getPlayerPlace(gameState: GameState, player: Player) {
   gameState.players.sort((a: Player, b: Player) => b.points - a.points);
   return gameState.players.findIndex((p) => p.id === player.id) + 1;
+}
+
+export function getCorrectAnswerOption(currentQuestion: Question) {
+  const correctAnswer = currentQuestion.questionOptions.find(
+    (questionOption) =>
+      questionOption.questionOptionID === currentQuestion.questionAnswer,
+  );
+  if (!correctAnswer) {
+    throw new Error("Could not find correct answer!");
+  }
+  return correctAnswer;
 }
 
 export const colorToHex = {

@@ -15,6 +15,7 @@ import RevealScreen from "@/lib/components/stages/reveal";
 import { GameState, getPlayerByID } from "@/utils/utils";
 import InProgressScreen from "@/lib/components/InProgress";
 import { useCookies } from "react-cookie";
+import LeaderboardScreen from "@/lib/components/stages/leaderboard-stage";
 
 export async function getServerSideProps(
   context: GetServerSidePropsContext<{ lobbyID: string }>,
@@ -82,9 +83,7 @@ export default function Home() {
         if (gameState.stage === "Prompt") {
           return (
             <PromptScreen
-              socket={socket.current}
               gameState={gameState}
-              lobbyID={lobbyID as string}
               player={getPlayerByID(gameState, socket.current.id)}
             />
           );
@@ -100,6 +99,15 @@ export default function Home() {
         } else if (gameState.stage === "Reveal") {
           return (
             <RevealScreen
+              player={getPlayerByID(gameState, socket.current.id)}
+              socket={socket.current}
+              lobbyID={lobbyID as string}
+              gameState={gameState}
+            />
+          );
+        } else if (gameState.stage === "Leaderboard") {
+          return (
+            <LeaderboardScreen
               player={getPlayerByID(gameState, socket.current.id)}
               socket={socket.current}
               lobbyID={lobbyID as string}
