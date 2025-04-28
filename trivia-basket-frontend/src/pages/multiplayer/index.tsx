@@ -3,10 +3,11 @@ import CreateLobbyScreen from "@/lib/components/stages/createLobby";
 import socketConnection from "@/lib/socket";
 import { useState, useEffect } from "react";
 import { Socket } from "socket.io-client";
+import env from "@beam-australia/react-env";
 
 export default function Home() {
   const [socket, setSocket] = useState<Socket | null>(socketConnection);
-  const socketURL = process.env.NEXT_PUBLIC_SOCKET_URL;
+  const socketURL = env("NEXT_PUBLIC_SOCKET_URL");
 
   useEffect(() => {
     socketConnection.on("connect_error", (err: Error) => {
