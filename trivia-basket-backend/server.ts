@@ -19,8 +19,6 @@ connection.connect((err) => {
   } else {
     console.log(err);
     console.log("Error connecting to database!");
-    console.log(process.env.DB_HOST);
-    console.log(process.env.DB_PASSWORD);
   }
   });
 
@@ -30,6 +28,7 @@ app.use(express.json());
 app.get('/', function(req, res) {
         res.send({'message': 'Hello'});
 });
+
 app.post('/api/login', async function(req, res) {
   const username = req.body.username;
 
@@ -64,6 +63,22 @@ app.post('/api/updateProfileImage', async function(req, res) {
   });
   
 });
+
+app.get('/api/categories', async function(req, res) {
+
+  let sql = 'SELECT categoryName from Category';
+
+  connection.query(sql, function(err, results) {
+    if (err) {
+      console.error('Error fetching categories', err);
+      res.status(500).send({ message: 'Error fetching categories', error: err });
+      return;
+    }
+    res.json(results);
+  });
+  
+});
+
 
 app.listen(PORT, function () {
         console.log(`Node app is running on port ${PORT}`);
