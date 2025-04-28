@@ -4,12 +4,12 @@ import { twMerge } from "tailwind-merge";
 
 export interface Player {
   id: string;
+  username: string;
   name: string;
   profileIcon: string;
   profileColor: string;
   points: number;
   currentResponse: string;
-  isMatched: boolean;
 }
 
 export interface Flashcard {
@@ -41,15 +41,15 @@ export interface GameState {
   guessTime: number;
 }
 export interface Question {
-  questionID: string;
+  questionID: number;
   questionText: string;
   questionOptions: QuestionOption[];
   questionCategory: string;
-  questionAnswer: string;
+  questionAnswer: number;
 }
 
 export interface QuestionOption {
-  questionOptionID: string;
+  questionOptionID: number;
   questionOptionLabel: string;
   questionOptionText: string;
 }

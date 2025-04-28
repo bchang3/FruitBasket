@@ -23,9 +23,11 @@ export default function PromptScreen({ gameState, player }: PromptScreenProps) {
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             Round {gameState.currentRound}
           </h1>
-          <div className="flex flex-col justify-center gap-4 text-3xl md:text-5xl text-center font-semibold">
-            Q. {gameState.currentQuestion.questionText}
-          </div>
+          {gameState.currentQuestion && (
+            <div className="flex flex-col justify-center gap-4 text-3xl md:text-5xl text-center font-semibold">
+              Q. {gameState.currentQuestion.questionText}
+            </div>
+          )}
         </div>
       </div>
     </div>
