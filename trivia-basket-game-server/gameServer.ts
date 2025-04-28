@@ -2,6 +2,11 @@ import express from "express";
 import { Server } from "socket.io";
 import http from "http";
 
+import dotenv from "dotenv";
+dotenv.config();
+
+const PORT = parseInt(process.env.PORT || '8000', 10);
+
 export interface Player {
   id: string;
   name: string;
@@ -439,7 +444,6 @@ io.on("connection", (socket) => {
 });
 
 // Start the server
-const PORT = 8001;
-server.listen(8001, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`WebSocket server running on port ${PORT}`);
 });
