@@ -27,10 +27,12 @@ export default async function handler(
     let result = false;
     let profile_icon = "";
     let profile_color = "";
+    let elo = 0;
     if (data.length == 1) {
       result = data[0].password == password;
       profile_icon = data[0].fruitIcon;
       profile_color = data[0].iconBackgroundColor;
+      elo = data[0].elo;
     }
 
     if (result) {
@@ -38,6 +40,7 @@ export default async function handler(
         username: username,
         profile_icon: profile_icon,
         profile_color: profile_color,
+        elo: elo,
         password: password,
         loggedIn: true,
         issuedAt: Date.now() / 1000,

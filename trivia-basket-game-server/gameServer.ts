@@ -1,14 +1,23 @@
 import express from "express";
 import { Server } from "socket.io";
+import mysql from "mysql2";
 import http from "http";
 
 import dotenv from "dotenv";
 dotenv.config();
 
-const PORT = parseInt(process.env.PORT || '8000', 10);
+const PORT = parseInt(process.env.PORT || "8000", 10);
+
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: "root",
+  password: process.env.DB_PASSWORD,
+  database: "fruit-basket-db",
+});
 
 export interface Player {
   id: string;
+  username: string;
   name: string;
   profileIcon: string;
   profileColor: string;
@@ -34,12 +43,18 @@ export interface Question {
   questionText: string;
   questionOptions: QuestionOption[];
   questionCategory: string;
-  questionAnswer: string;
+  questionAnswer: number;
   firstAnswerTime?: number;
 }
 
+export interface QuestionShell {
+  questionID: string;
+  questionText: string;
+  answerOptionID: number;
+  questionCategory: string;
+}
 export interface QuestionOption {
-  questionOptionID: string;
+  questionOptionID: number;
   questionOptionLabel: string;
   questionOptionText: string;
 }
@@ -62,6 +77,8 @@ class Game {
   gameState: GameState;
   responseIDs: string[];
   guessIDs: string[];
+  questions: QuestionShell[];
+  ID: number;
   awaitDisplayTimeout: ReturnType<typeof setTimeout>;
   awaitGuessesTimeout: ReturnType<typeof setTimeout>;
 
@@ -100,36 +117,28 @@ class Game {
    * @returns question string
    */
   getQuestion() {
-    const questionOptions: QuestionOption[] = [
-      {
-        questionOptionID: "a",
-        questionOptionLabel: "A",
-        questionOptionText: "The inability to express emotions",
-      },
-      {
-        questionOptionID: "b",
-        questionOptionLabel: "B",
-        questionOptionText: "Misinterpretation of basic human expressions",
-      },
-      {
-        questionOptionID: "c",
-        questionOptionLabel: "C",
-        questionOptionText: "Total indifference to others expressions",
-      },
-      {
-        questionOptionID: "d",
-        questionOptionLabel: "D",
-        questionOptionText: "The inability to recognize faces",
-      },
-    ];
-    return {
-      questionID: "id",
-      questionText:
-        "In medicine, which of these brain disorders does the term prosopagnosia refer to?",
-      questionOptions: questionOptions,
-      questionCategory: "Science-Technology",
-      questionAnswer: "d",
-    };
+    const qs = this.questions[this.gameState.currentRound - 1];
+    const sql = "CALL getQuestionOptions(?)";
+    connection.query(sql, [qs.questionID], function (err, results) {
+      if (err) {
+        console.error("Error getting question", err);
+        return;
+      }
+      const [rows]: any = results;
+      const questionOptions: QuestionOption[] = rows.map((packet) => {
+        return {
+          ...packet,
+          questionOptionText: packet.questionOptionValue,
+        } as QuestionOption;
+      });
+      return {
+        questionID: qs.questionID,
+        questionText: qs.questionText,
+        questionOptions: questionOptions,
+        questionCategory: qs.questionCategory,
+        questionAnswer: qs.answerOptionID,
+      };
+    });
   }
   /**
    * Transitions game state to "Prompt" stage
@@ -139,12 +148,38 @@ class Game {
     this.gameState.stage = "Prompt";
     this.gameState.currentRound += 1;
     this.clearResponses();
-    this.gameState.currentQuestion = this.getQuestion();
-    this.gameState.roundStartTime = Date.now();
-    this.awaitDisplayTimeout = setTimeout(() => {
-      this.startGuessStage();
-    }, 1000 * displayTime);
-    io.to(this.lobbyID).emit("gameStateUpdate", this.gameState);
+    const qs = this.questions[this.gameState.currentRound - 1];
+    const sql = "CALL getQuestionOptions(?)";
+    if (!qs) {
+      return;
+    }
+    connection.query(sql, [qs.questionID], (err, results) => {
+      if (err) {
+        console.error("Error getting question", err);
+        return;
+      }
+      const [rows]: any = results;
+      const questionOptions: QuestionOption[] = rows.map((packet) => {
+        return {
+          ...packet,
+          questionOptionLabel: packet.optionLabel,
+          questionOptionText: packet.optionValue,
+        } as QuestionOption;
+      });
+      this.gameState.currentQuestion = {
+        questionID: qs.questionID,
+        questionText: qs.questionText,
+        questionOptions: questionOptions,
+        questionCategory: qs.questionCategory,
+        questionAnswer: qs.answerOptionID,
+      };
+      this.gameState.roundStartTime = Date.now();
+      this.awaitDisplayTimeout = setTimeout(() => {
+        this.startGuessStage();
+      }, 1000 * displayTime);
+      console.log("game state", this.gameState);
+      io.to(this.lobbyID).emit("gameStateUpdate", this.gameState);
+    });
   }
   /**
    * Transition game state to "Guess" stage
@@ -197,6 +232,14 @@ class Game {
   endGame() {
     console.log(`GAME ENDED in lobby ${this.lobbyID}`);
     this.gameState.stage = "End";
+    const sql = "UPDATE Game SET isFinished=1 WHERE gameID=?";
+    connection.query(sql, [this.ID], (err, results) => {
+      if (err) {
+        console.error("Error saving game", err);
+        return;
+      }
+      console.log("Saved game!");
+    });
     setTimeout(
       () => {
         console.log(`Deleting game ${this.lobbyID}!`);
@@ -241,6 +284,7 @@ io.on("connection", (socket) => {
       lobbies[lobbyID].push(socket.id);
       const game = lobbyStates[lobbyID];
       const playerName = playerData.name;
+      const username = playerData.username;
       if (playerName) {
         console.log(`${playerName} joined lobby ${lobbyID}`);
       }
@@ -288,6 +332,7 @@ io.on("connection", (socket) => {
           //only allow joins in lobby stage of game
           game.gameState.players.push({
             id: socket.id,
+            username: username,
             name: playerName,
             profileColor: playerData.profileColor,
             profileIcon: playerData.profileIcon,
@@ -306,8 +351,37 @@ io.on("connection", (socket) => {
     if (lobbies[lobbyID]) {
       const game = lobbyStates[lobbyID];
       console.log(`GAME STARTED by ${game?.getPlayerByID(socket.id)?.name}`);
-      game.startPromptStage();
-      io.emit("gameStateUpdate", game.gameState);
+      const sql = "CALL initializeGame(?, ?, ?, ?)";
+      game.ID = Math.floor(Date.now() / 1000);
+      console.log("Game ID", game.ID);
+      connection.query(
+        sql,
+        [
+          game.gameState.categories.join(","),
+          game.gameState.players.map((player) => player.username).join(","),
+          game.gameState.numRounds,
+          game.ID,
+        ],
+        function (err, results) {
+          if (err) {
+            console.error("Error starting game", err);
+            return;
+          }
+          const sql2 = "CALL getGameQuestions(?)";
+          connection.query(sql2, [game.ID], function (err, results) {
+            if (err) {
+              console.error("Error starting game", err);
+              return;
+            }
+            const [rows]: any = results;
+            game.questions = rows.map((packet) => {
+              return { ...packet, questionCategory: packet.categoryName };
+            });
+            game.startPromptStage();
+            io.emit("gameStateUpdate", game.gameState);
+          });
+        },
+      );
     }
   });
 
@@ -402,6 +476,28 @@ io.on("connection", (socket) => {
         }
         player.points += points;
         console.log(player.points);
+        const sql = "CALL createQuestionInstance(?,?,?,?,?,?,?,?)";
+        const questionInstanceID = Math.floor(Date.now() / 1000);
+        connection.query(
+          sql,
+          [
+            questionInstanceID,
+            new Date(game.gameState.roundStartTime),
+            new Date(),
+            player.points,
+            game.gameState.currentQuestion.questionID,
+            game.ID,
+            player.username,
+            guess,
+          ],
+          function (err, results) {
+            if (err) {
+              console.error("Error saving question instance", err);
+              return;
+            }
+            console.log("Saved question instance!");
+          },
+        );
         if (game.guessIDs.length === game.gameState.players.length) {
           console.log(`All ${game.guessIDs.length} guesses received!`);
           game.startRevealStage();

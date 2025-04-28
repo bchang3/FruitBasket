@@ -1,4 +1,3 @@
-import Button from "@/lib/components/Button";
 import LinkButton from "@/lib/components/LinkButton";
 
 export default function Home() {

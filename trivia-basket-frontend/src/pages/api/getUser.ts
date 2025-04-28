@@ -24,6 +24,7 @@ export default async function handler(
         return res.status(200).json({
           username: payload.username,
           password: payload.password,
+          elo: payload.elo,
           profile_icon: payload.profile_icon,
           profile_color: payload.profile_color,
         });

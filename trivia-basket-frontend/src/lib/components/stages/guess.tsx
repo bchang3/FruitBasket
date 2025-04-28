@@ -18,7 +18,7 @@ export default function GuessScreen({
   const [idx, setIdx] = useState<number>(0);
   const [guessed, setGuessed] = useState<boolean>(false);
 
-  const saveGuess = (guess: string) => {
+  const saveGuess = (guess: number) => {
     socket.emit("savePlayerGuess", lobbyID, guess);
   };
 

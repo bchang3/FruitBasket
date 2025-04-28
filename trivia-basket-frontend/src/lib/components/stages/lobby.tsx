@@ -278,7 +278,6 @@ export default function LobbyScreen({
                   </div>
                 );
               })}
-              {selectedCategoriesRef.current.length == 0 && <div>All</div>}
             </div>
           </div>
           <div className="flex flex-col mt-2 items-center">
