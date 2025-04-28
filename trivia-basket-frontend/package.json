@@ -15,6 +15,10 @@
   },
   "dependencies": {
     "@beam-australia/react-env": "^3.1.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.0.2",
+    "chart.js": "^4.4.9",
     "clsx": "^2.1.1",
     "cookie": "^1.0.2",
     "dotenv": "^16.4.7",
@@ -22,6 +26,7 @@
     "next": "15.2.5",
     "prettier": "^3.5.3",
     "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.0",
     "react-cookie": "^8.0.1",
     "react-dom": "^19.0.0",
     "react-toastify": "^11.0.5",

@@ -12,6 +12,22 @@ export interface Player {
   isMatched: boolean;
 }
 
+export interface Flashcard {
+  questionID: string;
+  questionText: string;
+  categoryName: string;
+  answerText: string;
+  priority: number;
+}
+
+export interface UserCategoryStat {
+  categoryID: number;
+  categoryName: string;
+  accuracy: number;
+  correct_count: number;
+  total_count: number;
+}
+
 export interface GameState {
   stage: "Lobby" | "Prompt" | "Guess" | "Reveal" | "Leaderboard" | "End";
   players: Player[];
@@ -60,6 +76,18 @@ export function getCorrectAnswerOption(currentQuestion: Question) {
     throw new Error("Could not find correct answer!");
   }
   return correctAnswer;
+}
+
+export function getBestCategory(items: UserCategoryStat[]) {
+  return items.reduce((prev, current) => {
+    return current.accuracy > prev.accuracy ? current : prev;
+  }).categoryName;
+}
+
+export function getWorstCategory(items: UserCategoryStat[]) {
+  return items.reduce((prev, current) => {
+    return current.accuracy < prev.accuracy ? current : prev;
+  }).categoryName;
 }
 
 export const colorToHex = {

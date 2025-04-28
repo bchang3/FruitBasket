@@ -32,7 +32,7 @@ app.get('/', function(req, res) {
 app.post('/api/login', async function(req, res) {
   const username = req.body.username;
 
-  let sql = 'SELECT password, fruitIcon, iconBackgroundColor FROM User WHERE username=?';
+  let sql = 'SELECT password, fruitIcon, iconBackgroundColor, elo FROM User WHERE username=?';
 
   connection.query(sql, [username], function(err, results) {
     if (err) {
@@ -41,6 +41,55 @@ app.post('/api/login', async function(req, res) {
       return;
     }
     res.json(results);
+  });
+  
+});
+
+app.get('/api/user/flashcards/:username', async function(req, res) {
+  const username = req.params.username;
+  let sql = 'CALL GetUserFlashcards(?)';
+
+  connection.query(sql, [username], function(err, results) {
+    if (err) {
+      console.error('Error fetching user flashcards', err);
+      res.status(500).send({ message: 'Error fetching user flashcards', error: err });
+      return;
+    }
+    const [rows]: any = results;
+    res.json(rows);
+  });
+  
+});
+
+app.get('/api/user/stats/:username', async function(req, res) {
+  const username = req.params.username;
+  let sql = 'CALL GetUserCategoryStats(?)';
+
+  connection.query(sql, [username], function(err, results) {
+    if (err) {
+      console.error('Error fetching user flashcards', err);
+      res.status(500).send({ message: 'Error fetching user flashcards', error: err });
+      return;
+    }
+    const [rows]: any = results;
+    res.json(rows);
+  });
+  
+});
+
+
+app.post('/api/user/flashcards/addFlashcard', async function(req, res) {
+  const username = req.body.username;
+  const questionID = req.body.questionID;
+  let sql = 'CALL AddFlashcard(?, ?)';
+
+  connection.query(sql, [username, questionID], function(err, results) {
+    if (err) {
+      console.error('Error adding user flashcard.', err);
+      res.status(500).send({ message: 'Error adding user flashcard.', error: err });
+      return;
+    }
+    res.send({ message: 'Succesfully added user flashcard!' });
   });
   
 });
