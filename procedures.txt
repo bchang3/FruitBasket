@@ -114,7 +114,7 @@ CREATE TRIGGER Finished_Game_Trigger
 	BEGIN
 		DECLARE avgPts DOUBLE;
 		IF old.isFinished = 0 AND new.isFinished = 1 THEN
-			SELECT AVG(totalPoints)	
+			SELECT AVG(totalPts)	
 			INTO avgPts
 			FROM (
 			  SELECT username, SUM(points) AS totalPts
