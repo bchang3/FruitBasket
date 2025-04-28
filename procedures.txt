@@ -1,0 +1,213 @@
+-- DROP PROCEDURE createQuestionInstance;
+DELIMITER //
+
+CREATE PROCEDURE createQuestionInstance(
+	IN in_questionInstanceID INT,
+	IN in_createdAt DATETIME,
+	IN in_answeredAt DATETIME,
+	IN in_points INT,
+	IN in_questionID INT,
+	IN in_gameID INT,
+	IN in_username VARCHAR(255),
+	IN in_userAnswer INT
+)
+BEGIN 
+INSERT INTO QuestionInstance(questionInstanceID, createdAt, answeredAt, points, questionID, gameID, username, userAnswer)
+VALUES (in_questionInstanceID, in_createdAt, in_answeredAt, in_points, in_questionID, in_gameID, in_username, in_userAnswer);
+END
+//
+DELIMITER ;
+
+call createQuestionInstance(121616, '2025-04-27 14:05:00', '2025-04-27 14:05:01', 10, 999, 7, 'user-0', 128);
+
+DELIMITER //
+
+CREATE PROCEDURE createFlashcard(
+	IN in_flashcardID INT,
+    IN in_priority INT,
+	IN in_questionID INT,
+    IN in_username VARCHAR(50)
+)
+BEGIN
+INSERT INTO Flashcard(flashcardID, priority, questionID, username)
+VALUES(in_flashcardID, in_priority, in_questionID, in_username);
+END
+//
+DELIMITER ;
+
+-- DROP PROCEDURE getUserFlashcards;
+
+DELIMITER //
+CREATE PROCEDURE getUserFlashcards(
+	IN in_username VARCHAR(50)
+)
+BEGIN
+SELECT
+ q.questionID,
+ q.questionText,
+ fc.flashcardID,
+ fc.priority,
+ qo.questionOptionID,
+ qo.optionLabel,
+ qo.optionValue,
+ (qo.questionOptionID = q.answerOptionID) AS answer
+FROM Flashcard fc NATURAL JOIN Question q NATURAL JOIN QuestionOption qo
+WHERE fc.username = in_username
+ORDER BY fc.priority DESC, qo.questionOptionID ASC, q.questionID ASC;
+END
+//
+DELIMITER ;
+
+DELIMITER //
+	CREATE PROCEDURE SearchFlashcards(
+	  IN in_username VARCHAR(255),
+	  IN in_keyword  VARCHAR(255)
+	)
+BEGIN
+  SELECT
+    f.flashcardID,
+    q.questionID,
+    q.questionText,
+    q.categoryID
+  FROM Flashcard f
+  JOIN Question q ON q.questionID = f.questionID
+  WHERE f.username = p_username
+    AND q.questionText LIKE '%@in_keyword%'
+  ORDER BY q.questionText;
+END;
+
+
+DELIMITER //
+CREATE PROCEDURE getGameQuestions(
+    IN in_gameID INT
+)
+BEGIN
+    SELECT
+        q.questionID,
+        q.questionText,
+        q.questionType,
+        q.categoryID,
+        SUM(qi.userAnswer = q.answerOptionID) / COUNT(qi.questionInstanceID) as user_accuracy
+	FROM GameQuestions gq 
+    JOIN Question q on gq.questionID = q.questionID
+-- if we have created that qi stuff, use it, otehrwise, let it be null
+    LEFT JOIN QuestionInstance qi ON q.questionID = qi.questionID AND qi.gameID = in_gameID
+    WHERE gq.gameID = in_gameID
+    GROUP BY q.questionID
+    ORDER BY q.questionID ASC;
+    END
+    //
+    DELIMITER ;
+    
+ALTER TABLE Game
+ADD COLUMN isFinished BIT NOT NULL DEFAULT 0;
+ALTER TABLE User ADD COLUMN elo INT NOT NULL DEFAULT 400;
+
+
+
+
+
+DELIMITER //
+CREATE TRIGGER Finished_Game_Trigger
+	AFTER UPDATE ON Game
+		FOR EACH ROW
+	BEGIN
+		DECLARE avgPts DOUBLE;
+		IF old.isFinished = 0 AND new.isFinished = 1 THEN
+			SELECT AVG(totalPoints)	
+			INTO avgPts
+			FROM (
+			  SELECT username, SUM(points) AS totalPts
+			  FROM QuestionInstance
+			  WHERE gameID = NEW.gameID
+			  GROUP BY username
+			) AS perUser;
+    UPDATE User u
+    JOIN (
+      SELECT username, SUM(points) AS totalPts
+      FROM QuestionInstance
+      WHERE gameID = NEW.gameID
+      GROUP BY username
+    ) AS stats ON u.username = stats.username
+    SET u.elo = u.elo + ROUND((stats.totalPts - avgPts) * 10);
+
+  END IF;
+END;
+//
+DELIMITER ;
+
+-- DROP PROCEDURE initializeGame;
+DELIMITER //
+CREATE PROCEDURE initializeGame(
+	IN in_categories VARCHAR(500),
+    IN in_usernamesCSV VARCHAR(1000),
+    IN in_numQuestions INT
+)
+BEGIN
+	DECLARE n_gameID INT;
+	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+	START TRANSACTION;
+    INSERT INTO Game (gameDate, numQuestions)
+    VALUES (NOW(), in_numQuestions);
+    SET n_gameID = LAST_INSERT_ID();
+    
+	INSERT INTO GameSettings (categoryID, gameID)
+    SELECT c.categoryID, n_gameID
+    FROM Category c
+    WHERE FIND_IN_SET(c.categoryID, in_categoriesCSV);
+    
+	INSERT INTO GamePlayers (username, gameID)
+    SELECT u.username, n_gameID
+    FROM User u
+    WHERE FIND_IN_SET(u.username, in_usernamesCSV);
+    
+	INSERT INTO GameQuestions (gameID, questionID)
+    SELECT n_gameID, q.questionID
+    FROM Question q
+    WHERE FIND_IN_SET(q.categoryID, in_categoriesCSV)
+    ORDER BY RAND()
+    LIMIT in_numQuestions;
+
+  COMMIT;
+END //
+DELIMITER ;
+
+
+
+DELIMITER //
+CREATE PROCEDURE GetUserCategoryStats(
+	IN in_username VARCHAR(50)
+)
+BEGIN
+SELECT 
+    c.categoryID, 
+    c.categoryName, 
+    (correct_count/total_count) AS accuracy,
+    correct_count,
+    total_count
+FROM (
+    SELECT 
+        q.categoryID, 
+        COUNT(*) AS correct_count
+    FROM QuestionInstance qi
+    NATURAL JOIN Question q
+    WHERE qi.username = in_username
+    AND qi.userAnswer = q.answerOptionID
+    GROUP BY q.categoryID
+) correctAnswers
+NATURAL JOIN (
+    SELECT 
+        q.categoryID, 
+        COUNT(*) AS total_count
+    FROM QuestionInstance qi
+    NATURAL JOIN Question q
+    WHERE qi.username = in_username
+    GROUP BY q.categoryID
+    HAVING total_count > 0
+) totalAnswers
+JOIN Category c ON c.categoryID = correctAnswers.categoryID
+ORDER BY accuracy DESC;
+END
+//
+DELIMITER ;
