@@ -147,6 +147,7 @@ class Game {
     console.log("Beginning **prompt** stage");
     this.gameState.stage = "Prompt";
     this.gameState.currentRound += 1;
+    this.gameState.roundStartTime = Date.now();
     this.clearResponses();
     const qs = this.questions[this.gameState.currentRound - 1];
     const sql = "CALL getQuestionOptions(?)";
