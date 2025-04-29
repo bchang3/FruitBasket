@@ -178,7 +178,6 @@ class Game {
       this.awaitDisplayTimeout = setTimeout(() => {
         this.startGuessStage();
       }, 1000 * displayTime);
-      console.log("game state", this.gameState);
       io.to(this.lobbyID).emit("gameStateUpdate", this.gameState);
     });
   }

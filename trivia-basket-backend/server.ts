@@ -61,6 +61,24 @@ app.get('/api/user/flashcards/:username', async function(req, res) {
   
 });
 
+app.post('/api/user/flashcards/search', async function(req, res) {
+  const username = req.body.username;
+  const search = req.body.search;
+  let sql = 'CALL SearchFlashcards(?, ?)';
+
+  connection.query(sql, [username, search], function(err, results) {
+    if (err) {
+      console.error('Error searchnig user flashcards', err);
+      res.status(500).send({ message: 'Error searching user flashcards', error: err });
+      return;
+    }
+    const [rows]: any = results;
+    res.json(rows);
+  });
+  
+});
+
+
 app.get('/api/user/stats/:username', async function(req, res) {
   const username = req.params.username;
   let sql = 'CALL GetUserCategoryStats(?)';

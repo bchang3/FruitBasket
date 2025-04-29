@@ -1,11 +1,12 @@
 import Button from "@/lib/components/Button";
 import Checkbox from "@/lib/components/Checkbox";
 import { cn, Flashcard } from "@/utils/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Flashcards() {
   const [username, setUsername] = useState<string>();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
   console.log(flashcards);
   const getFlashcards = async (username: string) => {
     const res = await fetch(`/api/getUserFlashcards/${username}`, {
@@ -13,6 +14,20 @@ export default function Flashcards() {
       headers: {
         "Content-Type": "application/json",
       },
+    });
+    if (res.ok) {
+      const flash = await res.json();
+      console.log(flash);
+      setFlashcards(flash);
+    }
+  };
+  const getFlashcardsSearch = async (username: string, search: string) => {
+    const res = await fetch(`/api/searchFlashcards`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, search }),
     });
     if (res.ok) {
       const flash = await res.json();
@@ -38,10 +53,21 @@ export default function Flashcards() {
   }, []);
   return (
     <div className="flex flex-col items-center gap-12 text-center w-full h-full text-6xl text-primary-green font-semibold">
-      <input
-        className="mt-12 w-1/2 bg-white rounded-full h-12 text-base p-4 text-black font-normal border border-gray-400"
-        placeholder="Search.."
-      />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          console.log("hi");
+          if (username && searchRef?.current?.value)
+            getFlashcardsSearch(username, searchRef.current.value);
+        }}
+        className="w-full"
+      >
+        <input
+          className="mt-12 w-1/2 bg-white rounded-full h-12 text-base p-4 text-black font-normal border border-gray-400"
+          placeholder="Search.."
+          ref={searchRef}
+        />
+      </form>
       <Button
         content="Start Practice"
         className="rounded-full absolute top-[140px] right-12 px-4 font-bold"
