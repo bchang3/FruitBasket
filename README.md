@@ -31,4 +31,5 @@
 | - seed.ts                 (Seed script to add questions, users, and games to the database)
 ```
 
-<img width="785" height="534" alt="Screenshot 2026-09-23 at 10 48 33 PM" src="https://github.com/user-attachments/assets/ebafdd08-5985-4692-b44f-57452edb3ebb" />
+#### Databse Schema
+<img width="1326" height="764" alt="Screenshot 2026-09-23 at 10 48 59 PM" src="https://github.com/user-attachments/assets/ff0e81d4-47ec-4f2e-83e8-eee16eb46273" />
