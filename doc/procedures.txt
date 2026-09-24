@@ -1,83 +1,119 @@
 DELIMITER //
+
 CREATE PROCEDURE createQuestionInstance(
-	IN in_questionInstanceID INT,
-	IN in_createdAt DATETIME,
-	IN in_answeredAt DATETIME,
-	IN in_points INT,
-	IN in_questionID INT,
-	IN in_gameID INT,
-	IN in_username VARCHAR(255),
-	IN in_userAnswer INT
+    IN in_questionInstanceID INT,
+    IN in_createdAt DATETIME,
+    IN in_answeredAt DATETIME,
+    IN in_points INT,
+    IN in_questionID INT,
+    IN in_gameID INT,
+    IN in_username VARCHAR(255),
+    IN in_userAnswer INT
 )
-BEGIN 
-INSERT INTO QuestionInstance(questionInstanceID, createdAt, answeredAt, points, questionID, gameID, username, userAnswer)
-VALUES (in_questionInstanceID, in_createdAt, in_answeredAt, in_points, in_questionID, in_gameID, in_username, in_userAnswer);
-END
-//
+BEGIN
+    INSERT INTO QuestionInstance (
+        questionInstanceID,
+        createdAt,
+        answeredAt,
+        points,
+        questionID,
+        gameID,
+        username,
+        userAnswer
+    )
+    VALUES (
+        in_questionInstanceID,
+        in_createdAt,
+        in_answeredAt,
+        in_points,
+        in_questionID,
+        in_gameID,
+        in_username,
+        in_userAnswer
+    );
+END //
+
 DELIMITER ;
 
 
 
 DELIMITER //
-CREATE PROCEDURE createFlashcard(
-	IN in_flashcardID INT,
-    IN in_priority INT,
-	IN in_questionID INT,
-    IN in_username VARCHAR(50)
+
+CREATE PROCEDURE AddFlashcard(
+    IN in_username VARCHAR(255),
+    IN in_questionID INT
 )
 BEGIN
-INSERT INTO Flashcard(flashcardID, priority, questionID, username)
-VALUES(in_flashcardID, in_priority, in_questionID, in_username);
-END
-//
+    INSERT INTO Flashcard (username, questionID, priority)
+    VALUES (in_username, in_questionID, 0);
+END //
+
 DELIMITER ;
 
 
 
 DELIMITER //
-CREATE PROCEDURE getUserFlashcards(
-	IN in_username VARCHAR(50)
+
+CREATE PROCEDURE GetUserFlashcards(
+    IN in_username VARCHAR(255)
 )
 BEGIN
-SELECT
- q.questionID,
- q.questionText,
- fc.flashcardID,
- fc.priority,
- qo.questionOptionID,
- qo.optionLabel,
- qo.optionValue,
- (qo.questionOptionID = q.answerOptionID) AS answer
-FROM Flashcard fc NATURAL JOIN Question q NATURAL JOIN QuestionOption qo
-WHERE fc.username = in_username
-ORDER BY fc.priority DESC, qo.questionOptionID ASC, q.questionID ASC;
-END
-//
+    SELECT
+        f.username,
+        f.questionID,
+        f.priority,
+        q.questionType,
+        q.questionText,
+        q.answerOptionID,
+        q.categoryID,
+        c.categoryName
+    FROM Flashcard f
+    JOIN Question q
+        ON f.questionID = q.questionID
+    JOIN Category c
+        ON q.categoryID = c.categoryID
+    WHERE f.username = in_username
+    ORDER BY f.priority DESC, f.questionID;
+END //
+
 DELIMITER ;
 
 
 
 DELIMITER //
-	CREATE PROCEDURE SearchFlashcards(
-	  IN in_username VARCHAR(255),
-	  IN in_keyword  VARCHAR(255)
-	)
+
+CREATE PROCEDURE SearchFlashcards(
+    IN p_username VARCHAR(255),
+    IN in_keyword VARCHAR(255)
+)
 BEGIN
-  SELECT
-    f.flashcardID,
-    q.questionID,
-    q.questionText,
-    q.categoryID
-  FROM Flashcard f
-  JOIN Question q ON q.questionID = f.questionID
-  WHERE f.username = p_username
-    AND LOWER(q.questionText) LIKE LOWER('%@in_keyword%')
-  ORDER BY q.questionText;
-END;
+    SELECT
+        f.username,
+        f.questionID,
+        f.priority,
+        q.questionType,
+        q.questionText,
+        q.answerOptionID,
+        q.categoryID,
+        c.categoryName
+    FROM Flashcard f
+    JOIN Question q
+        ON q.questionID = f.questionID
+    JOIN Category c
+        ON q.categoryID = c.categoryID
+    WHERE f.username = p_username
+        AND LOWER(q.questionText) LIKE LOWER(
+            CONCAT('%', in_keyword, '%')
+        )
+    ORDER BY q.questionText;
+END //
+
+DELIMITER ;
 
 
 
 DELIMITER //
+
 CREATE PROCEDURE getGameQuestions(
     IN in_gameID INT
 )
@@ -87,34 +123,37 @@ BEGIN
         q.questionText,
         q.answerOptionID,
         c.categoryName
-	FROM GameQuestions gq 
-    JOIN Question q on gq.questionID = q.questionID NATURAL JOIN Category c
--- if we have created that qi stuff, use it, otehrwise, let it be null
-    LEFT JOIN QuestionInstance qi ON q.questionID = qi.questionID AND qi.gameID = in_gameID
+    FROM GameQuestions gq
+        JOIN Question q
+            ON gq.questionID = q.questionID
+        NATURAL JOIN Category c
+        LEFT JOIN QuestionInstance qi
+            ON q.questionID = qi.questionID
+            AND qi.gameID = in_gameID
     WHERE gq.gameID = in_gameID
     GROUP BY q.questionID
     ORDER BY q.questionID ASC;
-    END
-    //
-    DELIMITER ;
+END //
+
+DELIMITER ;
 
 
 
 DELIMITER //
+
 CREATE PROCEDURE getQuestionOptions(
-	IN in_questionID INT
+    IN in_questionID INT
 )
 BEGIN
-	SELECT
-		questionOptionID,
+    SELECT
+        questionOptionID,
         optionLabel,
         optionValue
-	FROM QuestionOption
+    FROM QuestionOption
     WHERE in_questionID = questionID;
-END
-//
-DELIMITER ;
+END //
 
+DELIMITER ;
 
 
 DELIMITER //
@@ -149,77 +188,97 @@ DELIMITER ;
 
 
 DELIMITER //
+
 CREATE PROCEDURE initializeGame(
-	IN in_categoriesCSV VARCHAR(500),
+    IN in_categoriesCSV VARCHAR(500),
     IN in_usernamesCSV VARCHAR(1000),
     IN in_numQuestions INT,
     IN gameIDTime INT
 )
 BEGIN
-	DECLARE n_gameID INT;
-	SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    DECLARE n_gameID INT;
 
-	START TRANSACTION;
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+    START TRANSACTION;
+
     INSERT INTO Game (gameDate, numQuestions, gameID)
     VALUES (NOW(), in_numQuestions, gameIDTime);
+
     SET n_gameID = gameIDTime;
-    
-	INSERT INTO GameSettings (categoryID, gameID)
-    SELECT c.categoryID, n_gameID
+
+    INSERT INTO GameSettings (categoryID, gameID)
+    SELECT
+        c.categoryID,
+        n_gameID
     FROM Category c
-    WHERE FIND_IN_SET(LOWER(c.categoryName), LOWER(in_categoriesCSV));
-    
-	INSERT INTO GamePlayers (username, gameID)
-    SELECT u.username, n_gameID
+    WHERE FIND_IN_SET(
+        LOWER(c.categoryName),
+        LOWER(in_categoriesCSV)
+    );
+
+    INSERT INTO GamePlayers (username, gameID)
+    SELECT
+        u.username,
+        n_gameID
     FROM User u
     WHERE FIND_IN_SET(u.username, in_usernamesCSV);
-    
-	INSERT INTO GameQuestions (gameID, questionID)
-    SELECT n_gameID, q.questionID
-    FROM Question q NATURAL JOIN Category c
-    WHERE FIND_IN_SET(LOWER(c.categoryName), LOWER(in_categoriesCSV))
+
+    INSERT INTO GameQuestions (gameID, questionID)
+    SELECT
+        n_gameID,
+        q.questionID
+    FROM Question q
+    NATURAL JOIN Category c
+    WHERE FIND_IN_SET(
+        LOWER(c.categoryName),
+        LOWER(in_categoriesCSV)
+    )
     ORDER BY RAND()
     LIMIT in_numQuestions;
 
-  COMMIT;
+    COMMIT;
 END //
+
 DELIMITER ;
 
 
 
 DELIMITER //
+
 CREATE PROCEDURE GetUserCategoryStats(
-	IN in_username VARCHAR(50)
+    IN in_username VARCHAR(255)
 )
 BEGIN
-SELECT 
-    c.categoryID, 
-    c.categoryName, 
-    (correct_count/total_count) AS accuracy,
-    correct_count,
-    total_count
-FROM (
-    SELECT 
-        q.categoryID, 
-        COUNT(*) AS correct_count
-    FROM QuestionInstance qi
-    NATURAL JOIN Question q
-    WHERE qi.username = in_username
-    AND qi.userAnswer = q.answerOptionID
-    GROUP BY q.categoryID
-) correctAnswers
-NATURAL JOIN (
-    SELECT 
-        q.categoryID, 
-        COUNT(*) AS total_count
-    FROM QuestionInstance qi
-    NATURAL JOIN Question q
-    WHERE qi.username = in_username
-    GROUP BY q.categoryID
-    HAVING total_count > 0
-) totalAnswers
-JOIN Category c ON c.categoryID = correctAnswers.categoryID
-ORDER BY accuracy DESC;
-END
-//
+    SELECT
+        c.categoryID,
+        c.categoryName,
+        (correct_count / total_count) AS accuracy,
+        correct_count,
+        total_count
+    FROM (
+        SELECT
+            q.categoryID,
+            COUNT(*) AS correct_count
+        FROM QuestionInstance qi
+        NATURAL JOIN Question q
+        WHERE qi.username = in_username
+            AND qi.userAnswer = q.answerOptionID
+        GROUP BY q.categoryID
+    ) correctAnswers
+    NATURAL JOIN (
+        SELECT
+            q.categoryID,
+            COUNT(*) AS total_count
+        FROM QuestionInstance qi
+        NATURAL JOIN Question q
+        WHERE qi.username = in_username
+        GROUP BY q.categoryID
+        HAVING total_count > 0
+    ) totalAnswers
+    JOIN Category c
+        ON c.categoryID = correctAnswers.categoryID
+    ORDER BY accuracy DESC;
+END //
+
 DELIMITER ;
