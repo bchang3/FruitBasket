@@ -16,6 +16,8 @@ interface RevealProps {
   lobbyID: string;
   gameState: GameState;
   player: Player;
+  isSinglePlayer?: boolean;
+  onNext?: () => void;
 }
 
 export default function RevealScreen({
@@ -23,6 +25,8 @@ export default function RevealScreen({
   player,
   lobbyID,
   gameState,
+  isSinglePlayer,
+  onNext,
 }: RevealProps) {
   const addFlashcard = async (inputs: {
     username: string;
@@ -44,7 +48,7 @@ export default function RevealScreen({
       <PlayerBar
         player={player}
         place={getPlayerPlace(gameState, player)}
-        timer={true}
+        timer={!isSinglePlayer}
         duration={gameState.displayTime}
         startDate={gameState.roundStartTime}
       />
@@ -65,6 +69,17 @@ export default function RevealScreen({
             })
           }
         />
+        {isSinglePlayer && (
+          <Button
+            content={
+              gameState.currentRound >= gameState.numRounds
+                ? "See Results"
+                : "Next Question"
+            }
+            className="rounded-full px-4 text-xl mt-4"
+            onClick={() => onNext?.()}
+          />
+        )}
       </div>
     </div>
   );

@@ -8,18 +8,26 @@ interface GuessScreenProps {
   gameState: GameState;
   lobbyID: string;
   player: Player;
+  isSinglePlayer?: boolean;
+  onGuess?: (guess: number) => void;
 }
 export default function GuessScreen({
   socket,
   gameState,
   lobbyID,
   player,
+  isSinglePlayer,
+  onGuess,
 }: GuessScreenProps) {
   const [idx, setIdx] = useState<number>(0);
   const [guessed, setGuessed] = useState<boolean>(false);
 
   const saveGuess = (guess: number) => {
-    socket.emit("savePlayerGuess", lobbyID, guess);
+    if (isSinglePlayer) {
+      onGuess?.(guess);
+    } else {
+      socket.emit("savePlayerGuess", lobbyID, guess);
+    }
   };
 
   return (
@@ -59,7 +67,7 @@ export default function GuessScreen({
               )}
             </div>
           )}
-          {guessed && (
+          {guessed && !isSinglePlayer && (
             <div className="text-xl md:text-3xl font-semibold text-primary-chestnut">
               Waiting for others to finish guessing...
             </div>
