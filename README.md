@@ -1,16 +1,35 @@
-# Team086-CacheMoney
-CS411 project repository for Team086-CacheMoney (bchang, sgandhi, karan10, vrajp2).
-<img width="1200" alt="Screenshot 2025-02-16 at 2 53 28 PM" src="https://github.com/user-attachments/assets/b53e782d-4886-4c38-bb76-c997c08876ca" />
+# Fruit Basket
 
+### Codebase Structure
+#### Frontend (trivia-basket-frontend/)
+```
+- public                    (Static images and files to be served to client)
+- src                       (components, pages, and all application code)
+| - db                      (Prisma client initialization)
+| - lib                     (Shared code including components, email templates, and utility functions)
+    | - components          (React components)
+    | - utils               (utility functions)
+| - pages                   (Next.js pages directory, file-based routing)
+| - styles                  (Global CSS file)
+| - utils                   (utility functions)
+| - middleware.ts           (Middleware to handle account page authorization)
+```
 
-## Permission
-You should make sure you allow TAs to access your repository. You can add TA(s) as a collaborator to your repository.
+#### Backend (trivia-basket-backend/)
+```
+| - server.ts           (CRUD endpoints)
+```
+#### Game Server (trivia-basket-game-server/)
+```
+| - gameServer.ts           (WebSocket server for game lobbies)
+```
+#### Seeding (database-seeding)
+```
+| - categories.csv          (CSV of question categories)
+| - questionOptions.csv     (CSV of question options)
+| - questions.csv           (CSV of trivia questions)
+| - seed.ts                 (Seed script to add questions, users, and games to the database)
+```
 
-## Preparing for your release
-Eash submission should be in it's own [release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases). Release are specific freezes to your repository. You should submit your commit hash on canvas or google sheet. When tagging your stage, please use the tag `stage.x` where x is the number to represent the stage.
-
-## Keeping things up-to-date
-You should make sure you keep your project root files up-to-date. Information for each file/folders are explained.
-
-## Code Contribution
-Individual code contribution will be used to evaluate individual contribution to the project.
+#### Databse Schema
+<img width="1326" height="764" alt="Screenshot 2026-09-23 at 10 48 59 PM" src="https://github.com/user-attachments/assets/ff0e81d4-47ec-4f2e-83e8-eee16eb46273" />
