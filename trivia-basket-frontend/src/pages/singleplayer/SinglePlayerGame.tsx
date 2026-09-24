@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import {
-  SinglePlayerQuestion,
-  fetchSinglePlayerQuestions,
-} from "@/lib/data/singlePlayerQuestions";
-import GuessStage from "@/lib/components/single-player/GuessStage";
-import RevealStage from "@/lib/components/single-player/RevealStage";
-import EndStage from "@/lib/components/single-player/EndStage";
+import { useCookies } from "react-cookie";
 import LoadingScreen from "@/lib/components/LoadingScreen";
+import EndStage from "./EndStage";
+import GuessStage from "./GuessStage";
+import RevealStage from "./RevealStage";
+import { fetchQuestions, Question } from "../../lib/data/singlePlayerQuestions";
 
 const NUM_ROUNDS = 8;
 const GUESS_TIME = 15;
@@ -15,7 +13,8 @@ const REVEAL_TIME = 5;
 type Stage = "Guess" | "Reveal" | "End";
 
 export default function SinglePlayerGame() {
-  const [questions, setQuestions] = useState<SinglePlayerQuestion[]>([]);
+  const [cookies] = useCookies(["username"]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [loadError, setLoadError] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
   const [stage, setStage] = useState<Stage>("Guess");
@@ -25,8 +24,8 @@ export default function SinglePlayerGame() {
   const loadQuestions = () => {
     setLoadError(false);
     setQuestions([]);
-    fetchSinglePlayerQuestions(NUM_ROUNDS)
-      .then((qs) => setQuestions(qs))
+    fetchQuestions(cookies.username, NUM_ROUNDS)
+      .then((res) => setQuestions(res.questions))
       .catch((err) => {
         console.error("Error loading single player questions", err);
         setLoadError(true);

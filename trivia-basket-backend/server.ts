@@ -146,51 +146,66 @@ app.get('/api/categories', async function(req, res) {
   
 });
 
-// Returns `count` random questions, each with its answer options, for single player mode.
-// Assumes a `GetRandomQuestions(count, categories)` stored procedure exists that returns
-// question shells (questionID, questionText, answerOptionID, categoryName), the same shape
-// gameServer.ts's `getGameQuestions` proc returns.
-app.get('/api/questions/random', async function(req, res) {
-  const count = parseInt(req.query.count as string, 10) || 10;
-  const categories = req.query.categories as string | undefined;
+// Creates a solo game (same tables/procs multiplayer uses) and returns its questions
+// with answer options attached. POST because initializeGame writes rows (Game,
+// GameSettings, GamePlayers, GameQuestions) - it isn't safe to repeat on a GET.
+app.post('/api/singlePlayer/game', async function(req, res) {
+  const username = req.body.username;
+  const categories = req.body.categories as string[] | undefined;
+  const numQuestions = req.body.numQuestions || 10;
+  const gameID = Date.now();
 
-  let sql = 'CALL GetRandomQuestions(?, ?)';
+  const categoriesCSV = categories && categories.length > 0 ? categories.join(',') : '';
 
-  connection.query(sql, [count, categories || null], function(err, results) {
-    if (err) {
-      console.error('Error fetching random questions', err);
-      res.status(500).send({ message: 'Error fetching random questions', error: err });
-      return;
-    }
-    const [rows]: any = results;
+  const initSql = 'CALL initializeGame(?, ?, ?, ?)';
+  connection.query(
+    initSql,
+    [categoriesCSV, username, numQuestions, gameID],
+    function(initErr) {
+      if (initErr) {
+        console.error('Error initializing single player game', initErr);
+        res.status(500).send({ message: 'Error initializing single player game', error: initErr });
+        return;
+      }
 
-    const questions = rows.map((shell: any) => {
-      let questionOptions: string[] = [];
-      const optionsSql = 'CALL getQuestionOptions(?)';
-      connection.query(optionsSql, [shell.questionID], function(optErr, optResults) {
-        if (optErr) {
-          console.error('Error fetching question options', optErr);
+      const questionsSql = 'CALL getGameQuestions(?)';
+      connection.query(questionsSql, [gameID], function(err, results) {
+        if (err) {
+          console.error('Error fetching game questions', err);
+          res.status(500).send({ message: 'Error fetching game questions', error: err });
           return;
         }
-        const [optionRows]: any = optResults;
-        questionOptions = optionRows.map((packet: any) => ({
-          ...packet,
-          questionOptionLabel: packet.optionLabel,
-          questionOptionText: packet.optionValue,
-        }));
+        const [rows]: any = results;
+
+        const questions = rows.map((shell: any) => {
+          let questionOptions: string[] = [];
+          const optionsSql = 'CALL getQuestionOptions(?)';
+          connection.query(optionsSql, [shell.questionID], function(optErr, optResults) {
+            if (optErr) {
+              console.error('Error fetching question options', optErr);
+              return;
+            }
+            const [optionRows]: any = optResults;
+            questionOptions = optionRows.map((packet: any) => ({
+              ...packet,
+              questionOptionLabel: packet.optionLabel,
+              questionOptionText: packet.optionValue,
+            }));
+          });
+
+          return {
+            questionID: shell.questionID,
+            questionText: shell.questionText,
+            questionCategory: shell.categoryName,
+            questionAnswer: shell.answerOptionID,
+            questionOptions,
+          };
+        });
+
+        res.json({ gameID, questions });
       });
-
-      return {
-        questionID: shell.questionID,
-        questionText: shell.questionText,
-        questionCategory: shell.categoryName,
-        questionAnswer: shell.answerOptionID,
-        questionOptions,
-      };
-    });
-
-    res.json(questions);
-  });
+    },
+  );
 });
 
 app.listen(PORT, function () {

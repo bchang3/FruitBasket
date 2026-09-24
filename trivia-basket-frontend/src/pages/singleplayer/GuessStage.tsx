@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  SinglePlayerQuestion,
+  Question,
   shuffleOptions,
 } from "@/lib/data/singlePlayerQuestions";
 
 interface GuessStageProps {
-  question: SinglePlayerQuestion;
+  question: Question;
   guessTime: number;
   onAnswer: (optionID: number | null) => void;
 }

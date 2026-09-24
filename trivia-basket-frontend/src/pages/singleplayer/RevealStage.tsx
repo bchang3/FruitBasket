@@ -1,7 +1,7 @@
-import { SinglePlayerQuestion } from "@/lib/data/singlePlayerQuestions";
+import { Question } from "@/lib/data/singlePlayerQuestions";
 
 interface RevealStageProps {
-  question: SinglePlayerQuestion;
+  question: Question;
   wasCorrect: boolean;
   score: number;
 }
