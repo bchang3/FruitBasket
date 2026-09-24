@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import dotenv from "dotenv";
+import { getSessionUsername } from "@/lib/utils/auth";
 import { Flashcard } from "@/utils/utils";
 dotenv.config();
 
@@ -10,10 +11,17 @@ export default async function handler(
   if (req.method !== "GET") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
+  const username = await getSessionUsername(req);
+  if (!username) {
+    return res.status(401).json({ message: "Not logged in" });
+  }
+  if (req.query.username !== username) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
 
   try {
     const backendRes = await fetch(
-      `${process.env.SERVER_HOST}/api/user/flashcards/${req.query.username}`,
+      `${process.env.SERVER_HOST}/api/user/flashcards/${encodeURIComponent(username)}`,
       {
         method: "GET",
         headers: {

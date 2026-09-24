@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import dotenv from "dotenv";
+import { getSessionUsername } from "@/lib/utils/auth";
 import { Flashcard } from "@/utils/utils";
 dotenv.config();
 
@@ -10,7 +11,10 @@ export default async function handler(
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
-  const username = req.body.username;
+  const username = await getSessionUsername(req);
+  if (!username) {
+    return res.status(401).json({ message: "Not logged in" });
+  }
   const questionID = req.body.questionID;
 
   try {

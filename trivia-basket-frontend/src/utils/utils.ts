@@ -45,7 +45,7 @@ export interface Question {
   questionText: string;
   questionOptions: QuestionOption[];
   questionCategory: string;
-  questionAnswer: number;
+  questionAnswer?: number; // only sent by the server once the Reveal stage starts
 }
 
 export interface QuestionOption {

@@ -43,7 +43,7 @@ export interface Question {
   questionText: string;
   questionOptions: QuestionOption[];
   questionCategory: string;
-  questionAnswer: number;
+  questionAnswer?: number; // withheld from clients until the Reveal stage
   firstAnswerTime?: number;
 }
 
@@ -72,12 +72,25 @@ const io = new Server(server, {
 });
 
 const displayTime = 10;
+
+// Timestamp-seeded IDs, bumped so two games or answers in the same second
+// don't collide on the primary key.
+let lastGeneratedID = 0;
+function generateID() {
+  lastGeneratedID = Math.max(
+    lastGeneratedID + 1,
+    Math.floor(Date.now() / 1000),
+  );
+  return lastGeneratedID;
+}
+
 class Game {
   lobbyID: string;
   gameState: GameState;
   responseIDs: string[];
   guessIDs: string[];
   questions: QuestionShell[];
+  currentAnswer: number;
   ID: number;
   awaitDisplayTimeout: ReturnType<typeof setTimeout>;
   awaitGuessesTimeout: ReturnType<typeof setTimeout>;
@@ -113,34 +126,6 @@ class Game {
   }
 
   /**
-   * Get a random question from `questions.txt`
-   * @returns question string
-   */
-  getQuestion() {
-    const qs = this.questions[this.gameState.currentRound - 1];
-    const sql = "CALL getQuestionOptions(?)";
-    connection.query(sql, [qs.questionID], function (err, results) {
-      if (err) {
-        console.error("Error getting question", err);
-        return;
-      }
-      const [rows]: any = results;
-      const questionOptions: QuestionOption[] = rows.map((packet) => {
-        return {
-          ...packet,
-          questionOptionText: packet.questionOptionValue,
-        } as QuestionOption;
-      });
-      return {
-        questionID: qs.questionID,
-        questionText: qs.questionText,
-        questionOptions: questionOptions,
-        questionCategory: qs.questionCategory,
-        questionAnswer: qs.answerOptionID,
-      };
-    });
-  }
-  /**
    * Transitions game state to "Prompt" stage
    */
   startPromptStage() {
@@ -172,8 +157,8 @@ class Game {
         questionText: qs.questionText,
         questionOptions: questionOptions,
         questionCategory: qs.questionCategory,
-        questionAnswer: qs.answerOptionID,
       };
+      this.currentAnswer = qs.answerOptionID;
       this.gameState.roundStartTime = Date.now();
       this.awaitDisplayTimeout = setTimeout(() => {
         this.startGuessStage();
@@ -204,6 +189,9 @@ class Game {
   startRevealStage() {
     console.log("Beginning **reveal** stage");
     this.gameState.stage = "Reveal";
+    if (this.gameState.currentQuestion) {
+      this.gameState.currentQuestion.questionAnswer = this.currentAnswer;
+    }
     this.gameState.roundStartTime = Date.now();
     this.awaitDisplayTimeout = setTimeout(() => {
       if (this.gameState.numRounds === this.gameState.currentRound) {
@@ -248,7 +236,7 @@ class Game {
       },
       1000 * 60 * 5,
     ); //clear stored data after 5 minutes
-    io.emit("gameStateUpdate", this.gameState);
+    io.to(this.lobbyID).emit("gameStateUpdate", this.gameState);
   }
   /**
    *
@@ -308,7 +296,7 @@ io.on("connection", (socket) => {
           game.gameState.disconnectedPlayers.filter(
             (player) => player.id !== prevSocketID,
           );
-        io.emit("gameStateUpdate", game.gameState);
+        io.to(lobbyID).emit("gameStateUpdate", game.gameState);
         return;
       } else if (
         prevSocketID &&
@@ -324,7 +312,7 @@ io.on("connection", (socket) => {
               }
             : player,
         );
-        io.emit("gameStateUpdate", game.gameState);
+        io.to(lobbyID).emit("gameStateUpdate", game.gameState);
         return;
       } else {
         //first time join, no relevant previous session exists
@@ -339,7 +327,7 @@ io.on("connection", (socket) => {
             points: 0,
             currentResponse: "",
           });
-          io.emit("gameStateUpdate", game.gameState);
+          io.to(lobbyID).emit("gameStateUpdate", game.gameState);
         }
       }
     } else {
@@ -352,7 +340,7 @@ io.on("connection", (socket) => {
       const game = lobbyStates[lobbyID];
       console.log(`GAME STARTED by ${game?.getPlayerByID(socket.id)?.name}`);
       const sql = "CALL initializeGame(?, ?, ?, ?)";
-      game.ID = Math.floor(Date.now() / 1000);
+      game.ID = generateID();
       console.log("Game ID", game.ID);
       connection.query(
         sql,
@@ -378,7 +366,7 @@ io.on("connection", (socket) => {
               return { ...packet, questionCategory: packet.categoryName };
             });
             game.startPromptStage();
-            io.emit("gameStateUpdate", game.gameState);
+            io.to(lobbyID).emit("gameStateUpdate", game.gameState);
           });
         },
       );
@@ -421,7 +409,7 @@ io.on("connection", (socket) => {
       );
       game.gameState.disconnectedPlayers =
         game.gameState.disconnectedPlayers.filter((player) => player.id !== id);
-      io.emit("gameStateUpdate", game.gameState);
+      io.to(lobbyID).emit("gameStateUpdate", game.gameState);
     }
   });
 
@@ -446,17 +434,20 @@ io.on("connection", (socket) => {
 
   socket.on("savePlayerGuess", (lobbyID, guess) => {
     const game = lobbyStates[lobbyID];
-    if (lobbies[lobbyID] && game.gameState.currentQuestion) {
+    if (
+      lobbies[lobbyID] &&
+      game.gameState.currentQuestion &&
+      game.gameState.stage === "Guess"
+    ) {
       const player = game.getPlayerByID(socket.id);
-      if (player) {
+      // only grade a player's first guess each round
+      if (player && !game.guessIDs.includes(socket.id)) {
         console.log("Grading guess:", player.name);
-        if (!game.guessIDs.includes(socket.id)) {
-          game.guessIDs.push(socket.id);
-        }
+        game.guessIDs.push(socket.id);
         if (game.guessIDs.length === 1 && game.gameState.currentQuestion) {
           game.gameState.currentQuestion.firstAnswerTime = Date.now();
         }
-        const correct = guess === game.gameState.currentQuestion.questionAnswer;
+        const correct = guess === game.currentAnswer;
         let points = 0;
         if (correct && game.gameState.currentQuestion.firstAnswerTime) {
           points = 1000;
@@ -477,14 +468,14 @@ io.on("connection", (socket) => {
         player.points += points;
         console.log(player.points);
         const sql = "CALL createQuestionInstance(?,?,?,?,?,?,?,?)";
-        const questionInstanceID = Math.floor(Date.now() / 1000);
+        const questionInstanceID = generateID();
         connection.query(
           sql,
           [
             questionInstanceID,
             new Date(game.gameState.roundStartTime),
             new Date(),
-            player.points,
+            points,
             game.gameState.currentQuestion.questionID,
             game.ID,
             player.username,
