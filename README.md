@@ -24,8 +24,11 @@
 | - gameServer.ts           (WebSocket server for game lobbies)
 ```
 #### Seeding (database-seeding)
+```
 | - categories.csv          (CSV of question categories)
 | - questionOptions.csv     (CSV of question options)
 | - questions.csv           (CSV of trivia questions)
 | - seed.ts                 (Seed script to add questions, users, and games to the database)
+```
 
+<img width="785" height="534" alt="Screenshot 2026-09-23 at 10 48 33 PM" src="https://github.com/user-attachments/assets/ebafdd08-5985-4692-b44f-57452edb3ebb" />
