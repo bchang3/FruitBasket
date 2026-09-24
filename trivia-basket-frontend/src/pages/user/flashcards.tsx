@@ -56,7 +56,6 @@ export default function Flashcards() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          console.log("hi");
           if (username && searchRef?.current?.value)
             getFlashcardsSearch(username, searchRef.current.value);
         }}
@@ -64,7 +63,7 @@ export default function Flashcards() {
       >
         <input
           className="mt-12 w-1/2 bg-white rounded-full h-12 text-base p-4 text-black font-normal border border-gray-400"
-          placeholder="Search.."
+          placeholder="Search..."
           ref={searchRef}
         />
       </form>

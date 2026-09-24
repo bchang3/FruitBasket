@@ -68,7 +68,7 @@ app.post('/api/user/flashcards/search', async function(req, res) {
 
   connection.query(sql, [username, search], function(err, results) {
     if (err) {
-      console.error('Error searchnig user flashcards', err);
+      console.error('Error searching user flashcards', err);
       res.status(500).send({ message: 'Error searching user flashcards', error: err });
       return;
     }
@@ -146,6 +146,52 @@ app.get('/api/categories', async function(req, res) {
   
 });
 
+// Returns `count` random questions, each with its answer options, for single player mode.
+// Assumes a `GetRandomQuestions(count, categories)` stored procedure exists that returns
+// question shells (questionID, questionText, answerOptionID, categoryName), the same shape
+// gameServer.ts's `getGameQuestions` proc returns.
+app.get('/api/questions/random', async function(req, res) {
+  const count = parseInt(req.query.count as string, 10) || 10;
+  const categories = req.query.categories as string | undefined;
+
+  let sql = 'CALL GetRandomQuestions(?, ?)';
+
+  connection.query(sql, [count, categories || null], function(err, results) {
+    if (err) {
+      console.error('Error fetching random questions', err);
+      res.status(500).send({ message: 'Error fetching random questions', error: err });
+      return;
+    }
+    const [rows]: any = results;
+
+    const questions = rows.map((shell: any) => {
+      let questionOptions: string[] = [];
+      const optionsSql = 'CALL getQuestionOptions(?)';
+      connection.query(optionsSql, [shell.questionID], function(optErr, optResults) {
+        if (optErr) {
+          console.error('Error fetching question options', optErr);
+          return;
+        }
+        const [optionRows]: any = optResults;
+        questionOptions = optionRows.map((packet: any) => ({
+          ...packet,
+          questionOptionLabel: packet.optionLabel,
+          questionOptionText: packet.optionValue,
+        }));
+      });
+
+      return {
+        questionID: shell.questionID,
+        questionText: shell.questionText,
+        questionCategory: shell.categoryName,
+        questionAnswer: shell.answerOptionID,
+        questionOptions,
+      };
+    });
+
+    res.json(questions);
+  });
+});
 
 app.listen(PORT, function () {
         console.log(`Node app is running on port ${PORT}`);
