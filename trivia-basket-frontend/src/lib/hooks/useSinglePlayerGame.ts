@@ -3,6 +3,15 @@ import { GameState, Player, Question, QuestionOption } from "@/utils/utils";
 
 const promptTime = 3;
 
+function shuffle<T>(items: T[]) {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export interface SinglePlayerSettings {
   categories: string[];
   numRounds: number;
@@ -38,6 +47,16 @@ export default function useSinglePlayerGame(player: Player | null) {
       return;
     }
     setLoading(true);
+    const questionsRes = await fetch(
+      `/api/singleplayer/questions?categories=${encodeURIComponent(settings.categories.join(","))}`,
+    );
+    if (!questionsRes.ok) {
+      setLoading(false);
+      return;
+    }
+    const questionPool: Question[] = await questionsRes.json();
+    const questions = shuffle(questionPool).slice(0, settings.numRounds);
+
     const res = await fetch("/api/singleplayer/start", {
       method: "POST",
       headers: {
@@ -45,14 +64,14 @@ export default function useSinglePlayerGame(player: Player | null) {
       },
       body: JSON.stringify({
         categories: settings.categories,
-        numRounds: settings.numRounds,
+        questionIDs: questions.map((question) => question.questionID),
       }),
     });
     if (!res.ok) {
       setLoading(false);
       return;
     }
-    const { gameID, questions } = await res.json();
+    const { gameID } = await res.json();
 
     const fullQuestions: Question[] = [];
     for (const question of questions) {
