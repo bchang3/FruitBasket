@@ -20,6 +20,25 @@ export interface Flashcard {
   priority: number;
 }
 
+/**
+ * Maps a row from the GetUserFlashcards / SearchFlashcards procedures
+ */
+export function rowToFlashcard(row: {
+  questionID: string;
+  questionText: string;
+  categoryName: string;
+  optionValue: string | null;
+  priority: number;
+}): Flashcard {
+  return {
+    questionID: row.questionID,
+    questionText: row.questionText,
+    categoryName: row.categoryName,
+    answerText: row.optionValue ?? "",
+    priority: row.priority,
+  };
+}
+
 export interface UserCategoryStat {
   categoryID: number;
   categoryName: string;

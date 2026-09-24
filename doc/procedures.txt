@@ -66,12 +66,16 @@ BEGIN
         q.questionText,
         q.answerOptionID,
         q.categoryID,
-        c.categoryName
+        c.categoryName,
+        qo.optionValue
     FROM Flashcard f
     JOIN Question q
         ON f.questionID = q.questionID
     JOIN Category c
         ON q.categoryID = c.categoryID
+    LEFT JOIN QuestionOption qo
+        ON qo.questionOptionID = q.answerOptionID
+        AND qo.questionID = q.questionID
     WHERE f.username = in_username
     ORDER BY f.priority DESC, f.questionID;
 END //
@@ -95,12 +99,16 @@ BEGIN
         q.questionText,
         q.answerOptionID,
         q.categoryID,
-        c.categoryName
+        c.categoryName,
+        qo.optionValue
     FROM Flashcard f
     JOIN Question q
         ON q.questionID = f.questionID
     JOIN Category c
         ON q.categoryID = c.categoryID
+    LEFT JOIN QuestionOption qo
+        ON qo.questionOptionID = q.answerOptionID
+        AND qo.questionID = q.questionID
     WHERE f.username = p_username
         AND LOWER(q.questionText) LIKE LOWER(
             CONCAT('%', in_keyword, '%')

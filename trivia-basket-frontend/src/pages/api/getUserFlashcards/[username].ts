@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import dotenv from "dotenv";
 import { getSessionUsername } from "@/lib/utils/auth";
-import { Flashcard } from "@/utils/utils";
+import { rowToFlashcard } from "@/utils/utils";
 dotenv.config();
 
 export default async function handler(
@@ -30,18 +30,7 @@ export default async function handler(
       },
     );
     const data = await backendRes.json();
-    return res.status(200).json(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data.map((row: any) => {
-        return {
-          questionID: row.questionID,
-          questionText: row.questionText,
-          categoryName: row.CategoryName,
-          answerText: row.optionValue,
-          priority: row.priority,
-        } as Flashcard;
-      }),
-    );
+    return res.status(200).json(data.map(rowToFlashcard));
   } catch (error) {
     return res.status(500).json({ message: "Error in get user flashcards!" });
   }
