@@ -1,4 +1,3 @@
-import Button from "@/lib/components/Button";
 import LinkButton from "@/lib/components/LinkButton";
 
 export default function Home() {
@@ -7,7 +6,7 @@ export default function Home() {
       <div className="flex flex-col items-center w-1/3 gap-6 mt-24">
         <img
           src="/fruit-icons/strawberry.png"
-          className="w-64"
+          className="h-64"
           alt="strawberry icon"
         />
         <LinkButton
@@ -23,8 +22,8 @@ export default function Home() {
 
       <div className="flex flex-col items-center w-1/3 gap-6 mt-24">
         <img
-          src="/fruit-icons/strawberry.png"
-          className="w-64"
+          src="/multiplayer_icon.png"
+          className="h-64"
           alt="strawberry icon"
         />
         <LinkButton

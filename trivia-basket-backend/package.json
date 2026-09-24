@@ -13,5 +13,8 @@
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.0"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": "20.x"
+  }
 }

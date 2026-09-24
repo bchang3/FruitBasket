@@ -15,6 +15,7 @@ export default function LoginScreen({
 }: LoginScreenProps) {
   const [profileColor, setProfileColor] = useState<string>("");
   const [profileIcon, setProfileIcon] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
   useEffect(() => {
     const fetchUser = async () => {
       const res = await fetch("/api/getUser", {
@@ -27,6 +28,7 @@ export default function LoginScreen({
         const data = await res.json();
         setProfileColor(data.profile_color);
         setProfileIcon(data.profile_icon);
+        setUsername(data.username);
       }
     };
     fetchUser();
@@ -47,6 +49,7 @@ export default function LoginScreen({
           name: nameRef.current.value,
           profileColor,
           profileIcon,
+          username,
           prev_id: cookies["socket_id"],
         };
         socket.emit("joinGame", lobbyID, userData);

@@ -6,6 +6,7 @@ import {
   getCorrectAnswerOption,
   getPlayerPlace,
   Player,
+  toastSuccess,
 } from "@/utils/utils";
 import { PlayerBar } from "../PlayerBar";
 import Button from "../Button";
@@ -23,6 +24,21 @@ export default function RevealScreen({
   lobbyID,
   gameState,
 }: RevealProps) {
+  const addFlashcard = async (inputs: {
+    username: string;
+    questionID: number;
+  }) => {
+    const res = await fetch("/api/addFlashcard", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(inputs),
+    });
+    if (res.ok) {
+      toastSuccess("Saved flashcard!");
+    }
+  };
   return (
     <div className="min-h-full h-fit font-poppins">
       <PlayerBar
@@ -42,6 +58,12 @@ export default function RevealScreen({
         <Button
           content="Save Question as Flashcard"
           className="rounded-full px-4 text-xl"
+          onClick={() =>
+            addFlashcard({
+              username: player.username,
+              questionID: gameState.currentQuestion.questionID,
+            })
+          }
         />
       </div>
     </div>
